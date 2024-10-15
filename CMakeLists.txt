@@ -26,3 +26,5 @@ add_library(Clib
 )
 add_executable(externCexperiment ${CMAKE_CURRENT_SOURCE_DIR}/src/externCexperiment.cpp)
 target_link_libraries(externCexperiment PRIVATE Clib)
+
+add_executable(inner_scope ${CMAKE_CURRENT_SOURCE_DIR}/src/inner_scope.cpp)
