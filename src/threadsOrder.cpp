@@ -10,7 +10,8 @@ void doWork()
     for (size_t i = 0; i < 10; ++i)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        std::cout << "========= doWork() working " << i << " =========" << std::endl;
+        std::cout << "Thread id: " << std::this_thread::get_id()
+            << " ========= doWork() working " << i << " =========" << std::endl;
     }
     std::cout << "========= doWork() finished =========" << std::endl;
 }
@@ -33,7 +34,8 @@ int main()
     for (size_t i = 0; i < 5; ++i)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        std::cout << "========= main() working " << i << " =========" << std::endl;
+        std::cout << "Thread id: " << std::this_thread::get_id()
+            << " ========= main() working " << i << " =========" << std::endl;
     }
 
     std::cout << "========= main() finished =========" << std::endl;
