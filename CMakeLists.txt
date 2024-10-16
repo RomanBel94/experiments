@@ -28,3 +28,5 @@ add_executable(externCexperiment ${CMAKE_CURRENT_SOURCE_DIR}/src/externCexperime
 target_link_libraries(externCexperiment PRIVATE Clib)
 
 add_executable(inner_scope ${CMAKE_CURRENT_SOURCE_DIR}/src/inner_scope.cpp)
+
+add_executable(threadsOrder ${CMAKE_CURRENT_SOURCE_DIR}/src/threadsOrder.cpp)
