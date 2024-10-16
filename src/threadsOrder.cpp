@@ -22,7 +22,12 @@ int main()
     // doWork() starts here, not after main()
     //
     std::thread t1(doWork);
-    
+
+    // t1.join();
+    //
+    // if this will be here, main() will not work, it will be waiting
+    // for t1 end
+
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     
     for (size_t i = 0; i < 5; ++i)
