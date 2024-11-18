@@ -1,17 +1,21 @@
+#include <iostream>
 #include <cstddef>
 #include <thread>
 #include <chrono>
-#include <iostream>
+#include <mutex>
 
 
-void doWork()
+static void doWork()
 {
+    std::mutex mt;
     std::cout << "========= doWork() started =========" << std::endl;
     for (size_t i = 0; i < 10; ++i)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        mt.lock();
         std::cout << "Thread id: " << std::this_thread::get_id()
             << " ========= doWork() working " << i << " =========" << std::endl;
+        mt.unlock();
     }
     std::cout << "========= doWork() finished =========" << std::endl;
 }
@@ -31,11 +35,14 @@ int main()
 
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     
+    std::mutex mt;
     for (size_t i = 0; i < 5; ++i)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        mt.lock();
         std::cout << "Thread id: " << std::this_thread::get_id()
             << " ========= main() working " << i << " =========" << std::endl;
+        mt.unlock();
     }
 
     std::cout << "========= main() finished =========" << std::endl;
