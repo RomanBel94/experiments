@@ -1,5 +1,4 @@
 #include <ctime>
-#include <endian.h>
 #include <iostream>
 
 class A
