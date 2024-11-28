@@ -30,3 +30,5 @@ target_link_libraries(externCexperiment PRIVATE Clib)
 add_executable(inner_scope ${CMAKE_CURRENT_SOURCE_DIR}/src/inner_scope.cpp)
 
 add_executable(threadsOrder ${CMAKE_CURRENT_SOURCE_DIR}/src/threadsOrder.cpp)
+
+add_executable(variadic_arguments ${CMAKE_CURRENT_SOURCE_DIR}/src/variadic_arguments.cpp)
