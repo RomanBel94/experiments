@@ -18,7 +18,12 @@ void printSum(int a, int b)
 
 void foo(int a, int b, int c, int d)
 {
-    std::cout << "abcd" << std::endl;
+    std::cout << "foo" << std::endl;
+}
+
+void bar()
+{
+    std::cout << "bar" << std::endl;
 }
 
 int main()
@@ -26,6 +31,7 @@ int main()
     functionCaller(printNum, 5);
     functionCaller(printSum, 5, 6);
     functionCaller(foo, 1, 2, 3, 4);
+    functionCaller(bar);
 
     return 0;;
 }
