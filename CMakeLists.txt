@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -32,3 +32,5 @@ add_executable(inner_scope ${CMAKE_CURRENT_SOURCE_DIR}/src/inner_scope.cpp)
 add_executable(threadsOrder ${CMAKE_CURRENT_SOURCE_DIR}/src/threadsOrder.cpp)
 
 add_executable(variadic_arguments ${CMAKE_CURRENT_SOURCE_DIR}/src/variadic_arguments.cpp)
+
+add_executable(platform_calculator ${CMAKE_CURRENT_SOURCE_DIR}/src/platform_calculator.cpp)
