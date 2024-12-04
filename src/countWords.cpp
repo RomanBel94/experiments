@@ -9,7 +9,7 @@ unsigned int countWords(std::string& str)
     unsigned int count{ 0 };
 
     while (stream >> word) ++count;
-    return count;;    
+    return count;
 }
     
 
