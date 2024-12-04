@@ -19,7 +19,7 @@ int main()
     std::string expr2 = "Some string      with      some  words...";
 
     std::cout << countWords(expr1) << std::endl;
-    std::cout << countWords(expr2) << std::endl;;
+    std::cout << countWords(expr2) << std::endl;
 
     return 0;
 }
