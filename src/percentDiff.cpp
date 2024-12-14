@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 
@@ -8,14 +9,13 @@ double percent_diff(const T& a, const T& b) noexcept
     return std::min(a, b) / std::max(a, b) * 100.0;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    std::cout << "Enter two numers to get the percent difference between them: ";
-    double num_a, num_b;
-    std::cin >> num_a >> num_b;
+    if (argc != 3)
+        std::cout << "Usage: percentDiff <number> <number>" << std::endl;
 
-    std::cout << std::setprecision(4)
-        << "The difference is: " << percent_diff(num_a, num_b)<< '%' << std::endl;
+    std::cout << std::setprecision(4) << "The difference is: "
+        << percent_diff(std::atof(argv[1]), std::atof(argv[2]))<< '%' << std::endl;
 
     return 0;
 }
