@@ -6,7 +6,7 @@
 template<typename T>
 double percent_diff(const T& a, const T& b) noexcept
 {
-    return std::min(a, b) / std::max(a, b) * 100.0;
+    return 100.0 - std::min(a, b) / std::max(a, b) * 100.0;
 }
 
 int main(int argc, char* argv[])
