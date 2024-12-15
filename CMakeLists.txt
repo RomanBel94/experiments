@@ -38,3 +38,7 @@ add_executable(platform_calculator ${CMAKE_CURRENT_SOURCE_DIR}/src/platform_calc
 add_executable(countWords ${CMAKE_CURRENT_SOURCE_DIR}/src/countWords.cpp)
 
 add_executable(percentDiff ${CMAKE_CURRENT_SOURCE_DIR}/src/percentDiff.cpp)
+
+add_executable(callingFabricFunctionWithDifferentArguments 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/callingFabricFunctionWithDifferentArguments.cpp
+)
