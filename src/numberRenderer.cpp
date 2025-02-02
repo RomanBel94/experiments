@@ -129,7 +129,8 @@ std::array<std::array<char, WIDTH>,HEIGHT> nine{
 };
 
 // clang-format on
-void write_to_buffer(std::array<std::array<char, WIDTH>,HEIGHT> digit, size_t buffer_x, size_t buffer_y,
+void write_to_buffer(std::array<std::array<char, WIDTH>, HEIGHT> digit,
+                     size_t buffer_x, size_t buffer_y,
                      char buffer[BUFFER_HEIGHT][BUFFER_WIDTH])
 {
     for (size_t i = 0; i < HEIGHT; ++i)
@@ -137,13 +138,15 @@ void write_to_buffer(std::array<std::array<char, WIDTH>,HEIGHT> digit, size_t bu
             buffer[buffer_y + i][buffer_x + j] = digit[i][j];
 }
 
-int main(int argc, char* argv[]) {
-     if (argc == 1) {
-         std::cout << "Usage: numberRenderer <number>\twhere <number> is "
-                      "positive number between 0 and 999 including"
-                   << std::endl;
-         return EXIT_FAILURE;
-     }
+int main(int argc, char* argv[])
+{
+
+    // if (argc == 1) {
+    //    std::cout << "Usage: numberRenderer <number>\twhere <number> is "
+    //                  "positive number between 0 and 999 including"
+    //               << std::endl;
+    //     return EXIT_FAILURE;
+    // }
 
     std::unordered_map<char, decltype(zero)> numbers;
     numbers.insert({'0', zero});
@@ -157,26 +160,32 @@ int main(int argc, char* argv[]) {
     numbers.insert({'8', eight});
     numbers.insert({'9', nine});
 
-    std::string number{argv[1]};
-
+    // std::string number{argv[1]};
+    std::string number{"000"};
     if (number.size() == 1)
         number = "00" + number;
     else if (number.size() == 2)
         number = '0' + number;
-    else if (number.size() > 3) {
+    else if (number.size() > 3)
+    {
         std::cout << "Usage: numberRenderer <number>\twhere <number> is "
                      "positive number between 0 and 999 including"
                   << std::endl;
         return EXIT_FAILURE;
     }
 
-    char buffer[BUFFER_HEIGHT][BUFFER_WIDTH]{};
+    char buffer[BUFFER_HEIGHT][BUFFER_WIDTH];
+    for (size_t i = 0; i < BUFFER_HEIGHT; ++i)
+        for (size_t j = 0; j < BUFFER_WIDTH; ++j)
+            buffer[i][j] = ' ';
 
-    for (size_t i = 0; i < 3; ++i) {
-        write_to_buffer(numbers[number[i]], (WIDTH + 1) * i + 1, 1,  buffer);
+    for (size_t i = 0; i < 3; ++i)
+    {
+        write_to_buffer(numbers[number[i]], (WIDTH + 1) * i + 1, 1, buffer);
     }
 
-    for (size_t i = 0; i < BUFFER_HEIGHT; ++i) {
+    for (size_t i = 0; i < BUFFER_HEIGHT; ++i)
+    {
         for (size_t j = 0; j < BUFFER_WIDTH; ++j)
             std::cout << buffer[i][j];
 
