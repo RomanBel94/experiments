@@ -145,7 +145,7 @@ void write_to_buffer(
             buffer[buffer_y + i][buffer_x + j] = digit[i][j];
 }
 
-bool is_integer(char* num)
+bool is_unsigned_integer(char* num)
 {
     for (; *num; ++num)
         if (!std::isdigit(*num))
@@ -157,7 +157,7 @@ bool is_integer(char* num)
 int main(int argc, char* argv[])
 {
     // if integer number is not given or too many arguments
-    if (argc == 1 || !is_integer(argv[1]))
+    if (argc != 2 || !is_unsigned_integer(argv[1]))
     {
         std::cout << "Usage: numberRenderer <number>\twhere <number> is "
                      "positive number between 0 and 999 including"
@@ -186,19 +186,13 @@ int main(int argc, char* argv[])
         number = "00" + number;
     else if (number.size() == 2)
         number = '0' + number;
-    else if (number.size() > DIGIT_NUMBER)
-    {
-        std::cout << "Usage: numberRenderer <number>\twhere <number> is "
-                     "positive number between 0 and 999 including"
-                  << std::endl;
-        return EXIT_FAILURE;
-    }
 
-    // reate and initialize buffer for drawing
+    // create and initialize buffer for drawing
     char buffer[BUFFER_HEIGHT][BUFFER_WIDTH];
     std::memset(buffer, ' ', BUFFER_HEIGHT * BUFFER_WIDTH);
 
-    // write each ditit to buffer
+    // write each digit to buffer, if numer of digits is greater than 3, first 3
+    // digits will be drawn
     for (size_t i = 0; i < DIGIT_NUMBER; ++i)
     {
         write_to_buffer(numbers[number[i]],
