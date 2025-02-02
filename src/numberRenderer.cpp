@@ -1,4 +1,5 @@
 #include <array>
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <string>
@@ -178,9 +179,7 @@ int main(int argc, char* argv[])
     }
 
     char buffer[BUFFER_HEIGHT][BUFFER_WIDTH];
-    for (size_t i = 0; i < BUFFER_HEIGHT; ++i)
-        for (size_t j = 0; j < BUFFER_WIDTH; ++j)
-            buffer[i][j] = ' ';
+    std::memset(buffer, ' ', BUFFER_HEIGHT * BUFFER_WIDTH);
 
     for (size_t i = 0; i < 3; ++i)
     {
