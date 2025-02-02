@@ -1,12 +1,12 @@
 #include <iostream>
 
-template<unsigned N>
+template <unsigned N>
 struct Factorial
 {
     static constexpr unsigned num = Factorial<N - 1>().num * N;
 };
 
-template<>
+template <>
 struct Factorial<0>
 {
     static constexpr unsigned int num = 1;

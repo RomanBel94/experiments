@@ -1,6 +1,6 @@
 int main()
 {
-    int var{ 0 };
+    int var{0};
     const int* ciptr = &var;
     int const* icptr = &var;
     int* const iscptr = &var;
@@ -18,4 +18,3 @@ int main()
     cptr++;
     (*cptr)++;
 }
-

@@ -1,9 +1,8 @@
-#include <iostream>
-#include <cstddef>
-#include <thread>
 #include <chrono>
+#include <cstddef>
+#include <iostream>
 #include <mutex>
-
+#include <thread>
 
 static void doWork()
 {
@@ -14,7 +13,8 @@ static void doWork()
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         mt.lock();
         std::cout << "Thread id: " << std::this_thread::get_id()
-            << " ========= doWork() working " << i << " =========" << std::endl;
+                  << " ========= doWork() working " << i
+                  << " =========" << std::endl;
         mt.unlock();
     }
     std::cout << "========= doWork() finished =========" << std::endl;
@@ -23,7 +23,7 @@ static void doWork()
 int main()
 {
     std::cout << "========= main() started =========" << std::endl;
-    
+
     // doWork() starts here, not after main()
     //
     std::thread t1(doWork);
@@ -34,24 +34,25 @@ int main()
     // for t1 end
 
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    
+
     std::mutex mt;
     for (size_t i = 0; i < 5; ++i)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         mt.lock();
         std::cout << "Thread id: " << std::this_thread::get_id()
-            << " ========= main() working " << i << " =========" << std::endl;
+                  << " ========= main() working " << i
+                  << " =========" << std::endl;
         mt.unlock();
     }
 
     std::cout << "========= main() finished =========" << std::endl;
-    
+
     // std::thread t1(doWork)
     //
     // if it will be here, main() will be done first, then
     // doWork() will be started
-    
+
     t1.join(); // main() waits doWork() will be finished
 
     return 0;

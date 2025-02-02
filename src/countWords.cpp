@@ -6,12 +6,12 @@ unsigned int countWords(std::string& str)
 {
     std::istringstream stream(str);
     std::string word;
-    unsigned int count{ 0 };
+    unsigned int count{0};
 
-    while (stream >> word) ++count;
+    while (stream >> word)
+        ++count;
     return count;
 }
-    
 
 int main()
 {

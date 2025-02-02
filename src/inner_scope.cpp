@@ -15,7 +15,6 @@ public:
     ~B() { std::cout << "~B()\n"; }
 };
 
-
 int main()
 {
     A a;
