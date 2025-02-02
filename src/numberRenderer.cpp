@@ -13,6 +13,7 @@ constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
                                 HORIZONTAL_SPACE * DIGIT_NUMBER +
                                 HORIZONTAL_SPACE;
 
+// definitions of digits to draw
 // clang-format off
 std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> zero{
     "  ###  ",
@@ -144,10 +145,19 @@ void write_to_buffer(
             buffer[buffer_y + i][buffer_x + j] = digit[i][j];
 }
 
+bool is_integer(char* num)
+{
+    for (; *num; ++num)
+        if (!std::isdigit(*num))
+            return false;
+
+    return true;
+}
+
 int main(int argc, char* argv[])
 {
-
-    if (argc == 1)
+    // if integer number is not given or too many arguments
+    if (argc == 1 || !is_integer(argv[1]))
     {
         std::cout << "Usage: numberRenderer <number>\twhere <number> is "
                      "positive number between 0 and 999 including"
@@ -155,6 +165,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    // fill map with defined digits
     std::map<char, decltype(zero)> numbers;
     numbers.insert({'0', zero});
     numbers.insert({'1', one});
@@ -167,8 +178,10 @@ int main(int argc, char* argv[])
     numbers.insert({'8', eight});
     numbers.insert({'9', nine});
 
+    // take a number from arguments
     std::string number{argv[1]};
 
+    // fill with zeros if number is lower than 100
     if (number.size() == 1)
         number = "00" + number;
     else if (number.size() == 2)
@@ -181,9 +194,11 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    // reate and initialize buffer for drawing
     char buffer[BUFFER_HEIGHT][BUFFER_WIDTH];
     std::memset(buffer, ' ', BUFFER_HEIGHT * BUFFER_WIDTH);
 
+    // write each ditit to buffer
     for (size_t i = 0; i < DIGIT_NUMBER; ++i)
     {
         write_to_buffer(numbers[number[i]],
@@ -191,6 +206,7 @@ int main(int argc, char* argv[])
                         VERTICAL_SPACE, buffer);
     }
 
+    // draw buffer in console
     for (size_t i = 0; i < BUFFER_HEIGHT; ++i)
     {
         for (size_t j = 0; j < BUFFER_WIDTH; ++j)
@@ -199,6 +215,7 @@ int main(int argc, char* argv[])
         std::cout << '\n';
     }
 
+    // clear the output stream
     std::cout.flush();
 
     return EXIT_SUCCESS;
