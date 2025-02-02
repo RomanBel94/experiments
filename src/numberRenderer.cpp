@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+constexpr size_t VERTICAL_SPACE = 1;
+constexpr size_t HORIZONTAL_SPACE = 1;
 constexpr size_t DIGIT_NUMBER = 3;
 constexpr size_t DIGIT_HEIGHT = 9, DIGIT_WIDTH = 8;
 constexpr size_t BUFFER_HEIGHT = DIGIT_HEIGHT + 2;
@@ -170,7 +172,7 @@ int main(int argc, char* argv[])
         number = "00" + number;
     else if (number.size() == 2)
         number = '0' + number;
-    else if (number.size() > 3)
+    else if (number.size() > DIGIT_NUMBER)
     {
         std::cout << "Usage: numberRenderer <number>\twhere <number> is "
                      "positive number between 0 and 999 including"
@@ -181,10 +183,11 @@ int main(int argc, char* argv[])
     char buffer[BUFFER_HEIGHT][BUFFER_WIDTH];
     std::memset(buffer, ' ', BUFFER_HEIGHT * BUFFER_WIDTH);
 
-    for (size_t i = 0; i < 3; ++i)
+    for (size_t i = 0; i < DIGIT_NUMBER; ++i)
     {
-        write_to_buffer(numbers[number[i]], (DIGIT_WIDTH + 1) * i + 1, 1,
-                        buffer);
+        write_to_buffer(numbers[number[i]],
+                        (DIGIT_WIDTH + HORIZONTAL_SPACE) * i + HORIZONTAL_SPACE,
+                        VERTICAL_SPACE, buffer);
     }
 
     for (size_t i = 0; i < BUFFER_HEIGHT; ++i)
