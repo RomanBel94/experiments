@@ -9,8 +9,9 @@ constexpr size_t HORIZONTAL_SPACE = 1;
 constexpr size_t DIGIT_NUMBER = 3;
 constexpr size_t DIGIT_HEIGHT = 9, DIGIT_WIDTH = 8;
 constexpr size_t BUFFER_HEIGHT = DIGIT_HEIGHT + 2;
-constexpr size_t BUFFER_WIDTH =
-    DIGIT_WIDTH * DIGIT_NUMBER + 1 * DIGIT_WIDTH + 1;
+constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
+                                HORIZONTAL_SPACE * DIGIT_NUMBER +
+                                HORIZONTAL_SPACE;
 
 // clang-format off
 std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> zero{
