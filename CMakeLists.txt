@@ -44,3 +44,6 @@ add_executable(callingFabricFunctionWithDifferentArguments
 )
 
 add_executable(numberRenderer ${CMAKE_CURRENT_SOURCE_DIR}/src/numberRenderer.cpp)
+
+add_executable(twoPolynomsAdding ${CMAKE_CURRENT_SOURCE_DIR}/src/twoPolynomsAdding.cpp)
+add_custom_command(TARGET twoPolynomsAdding COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/polynoms.txt ${CMAKE_CURRENT_BINARY_DIR})
