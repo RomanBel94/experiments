@@ -49,3 +49,5 @@ add_executable(twoPolynomsAdding ${CMAKE_CURRENT_SOURCE_DIR}/src/twoPolynomsAddi
 add_custom_command(TARGET twoPolynomsAdding
     POST_BUILD
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/polynoms.txt ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(lambdaInheritance ${CMAKE_CURRENT_SOURCE_DIR}/src/lambdaInheritance.cpp)
