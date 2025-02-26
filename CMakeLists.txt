@@ -51,3 +51,4 @@ add_custom_command(TARGET twoPolynomsAdding
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/polynoms.txt ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(lambdaInheritance ${CMAKE_CURRENT_SOURCE_DIR}/src/lambdaInheritance.cpp)
+set_property(TARGET lambdaInheritance PROPERTY CXX_STANDARD 17)

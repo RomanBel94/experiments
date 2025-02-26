@@ -5,6 +5,8 @@
 #include <utility>
 #include <variant>
 #include <vector>
+
+
 template <typename... Lambdas>
 struct Visitor : Lambdas...
 {
@@ -27,5 +29,12 @@ int main()
                                   { std::cout << std::quoted(arg) << ' '; }},
                           v);
                   });
+
+    Visitor vis{[](int) { std::cout << "operator(int)"; },
+            [](double) { std::cout << "operator(double)"; }};
+
+    vis(1);
+    vis(1.0);
+
     return 0;
 }
