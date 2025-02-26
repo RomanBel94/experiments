@@ -30,8 +30,8 @@ int main()
                           v);
                   });
 
-    Visitor vis{[](int) { std::cout << "operator(int)"; },
-            [](double) { std::cout << "operator(double)"; }};
+    Visitor vis{[](int) { std::cout << "\nvis.operator(int);"; },
+            [](double) { std::cout << "\nvis.operator(double);"; }};
 
     vis(1);
     vis(1.0);
