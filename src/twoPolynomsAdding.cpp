@@ -6,200 +6,295 @@
 
 namespace LexerParser
 {
-    enum class TokenType : unsigned char
+enum class TokenType : unsigned char
+{
+    Undefined,
+    Forbiden,
+    Number,
+    Newline,
+    Eof
+};
+
+// ------------------------------------------------------------------------
+
+struct Token
+{
+    const TokenType type;
+    const std::string value;
+
+    explicit Token(const TokenType type, const std::string& value = "")
+        : type(type), value(value)
     {
-        Undefined,
-        Forbiden,
-        Number,
-        Newline,
-        Eof
-    };
+    }
+    Token(const Token& other) : type(other.type), value(other.value) {};
+    ~Token() = default;
 
-    // ------------------------------------------------------------------------
+    // inline bool operator==(TokenType other) const;
+    // inline bool operator!=(TokenType other) const;
+    inline operator TokenType() const;
 
-    struct Token
-    {
-        const TokenType type;
-        const std::string value;
+private:
+    Token() = delete;
+    Token(Token&&) noexcept = delete;
+    const Token& operator=(const Token&) = delete;
+    Token&& operator=(Token&&) noexcept = delete;
+};
 
-        Token() = delete;
-        explicit Token(const TokenType type, const std::string& value = "") :
-            type(type), value(value) {}
-        ~Token() = default;
+inline Token::operator TokenType() const { return type; }
 
-    private:
-        Token(const Token&) = delete;
-        Token(Token&&) noexcept = delete;
-        const Token& Token::operator=(const Token&) = delete;
-        Token&& Token::operator=(Token&&) noexcept = delete;
-    };
+// ------------------------------------------------------------------------
 
-    // ------------------------------------------------------------------------
+class Lexer
+{
+private:
+    TokenType current_token_type;
+    std::string current_token_value;
+    std::list<Token> tokens;
+    std::ifstream input_file;
+    char current_char;
 
-    class Lexer
-    {
-    private:
-        TokenType current_token_type;
-        std::string current_token_value;
-        std::list<Token> tokens;
-        std::ifstream input_file;
-        char current_char;
+    void skip_spaces();
+    void read_token();
+    void define_token_type(const std::string& token);
+    void add_token();
+    void add_eof();
+    void reset_current_token();
+    bool is_number(const std::string& token);
 
-        void skip_spaces();
-        void read_token();
-        void define_token_type(const std::string& token);
-        void add_token();
-        void add_eof();
-        void reset_current_token();
-        bool is_number(const std::string& token);
+public:
+    Lexer();
+    ~Lexer();
 
-    public:
-        Lexer();
-        ~Lexer();
+    void parse();
+    inline const std::list<Token>& get_tokens() const;
+};
 
-        void parse();
-        inline const std::list<Token>& get_tokens() const;
-    };
+Lexer::Lexer()
+    : current_token_type(TokenType::Undefined), current_token_value(""),
+      current_char('\0')
+{
+    input_file.open("polynoms.txt", std::ios::in);
+    if (!input_file.is_open())
+        std::cout << "Can't open input file!" << std::endl;
 
-    Lexer::Lexer() : current_token_type(TokenType::Undefined), current_token_value(""), current_char('\0')
-    {
-        input_file.open("polynoms.txt", std::ios::in);
-        if (!input_file.is_open())
-            std::cout << "Can't open input file!" << std::endl;
+    current_char = input_file.get();
+}
 
+Lexer::~Lexer()
+{
+    if (input_file.is_open())
+        input_file.close();
+}
+
+void Lexer::skip_spaces()
+{
+    while (isspace(current_char) && current_char != '\n')
         current_char = input_file.get();
-    }
+}
 
-    Lexer::~Lexer()
+void Lexer::read_token()
+{
+    skip_spaces();
+    if (input_file.eof())
     {
-        if (input_file.is_open())
-            input_file.close();
+        add_eof();
+        return;
     }
-
-    void Lexer::skip_spaces()
+    if (current_char == '\n')
+        current_token_value += current_char;
+    else
     {
-        while (isspace(current_char) && current_char != '\n')
-            current_char = input_file.get();
-    }
-
-    void Lexer::read_token()
-    {
-        skip_spaces();
-        if (input_file.eof())
+        while (!isspace(current_char) && !input_file.eof())
         {
-            add_eof();
-            return;
-        }
-        if (current_char == '\n')
             current_token_value += current_char;
-        else
+            current_char = input_file.get();
+        }
+    }
+    add_token();
+}
+
+void Lexer::define_token_type(const std::string& token)
+{
+    if (token == "\n")
+        current_token_type = TokenType::Newline;
+    else if (is_number(token))
+        current_token_type = TokenType::Number;
+    else
+        current_token_type = TokenType::Forbiden;
+}
+
+void Lexer::add_token()
+{
+    define_token_type(current_token_value);
+    tokens.emplace_back(current_token_type, current_token_value);
+    reset_current_token();
+}
+
+void Lexer::add_eof()
+{
+    current_token_type = TokenType::Eof;
+    tokens.emplace_back(current_token_type);
+}
+
+void Lexer::reset_current_token()
+{
+    if (current_token_type == TokenType::Newline)
+        current_char = input_file.get();
+
+    current_token_type = TokenType::Undefined;
+    current_token_value.clear();
+}
+
+bool Lexer::is_number(const std::string& token)
+{
+    for (char symbol : token)
+        if (!isdigit(symbol))
+            return false;
+
+    return true;
+}
+
+void Lexer::parse()
+{
+    if (!input_file.is_open())
+        return;
+
+    while (current_token_type != TokenType::Eof)
+        read_token();
+}
+
+inline const std::list<Token>& Lexer::get_tokens() const { return tokens; }
+
+// ------------------------------------------------------------------------
+
+class Parser
+{
+private:
+    Lexer lexer;
+    std::map<int, int> polynom1;
+    std::map<int, int> polynom2;
+    std::map<int, int> result_polynom;
+    std::map<int, int>* current_polynom;
+    size_t current_line;
+    int power;
+    int base;
+
+public:
+    Parser();
+    ~Parser() = default;
+
+    void parse();
+    inline const std::map<int, int>& get_polynom1() const;
+    inline const std::map<int, int>& get_polynom2() const;
+};
+
+Parser::Parser()
+    : current_polynom(&polynom1), power(0), base(0), current_line(1)
+{
+    lexer.parse();
+}
+
+void Parser::parse()
+{
+    if (lexer.get_tokens().size() < 7)
+        std::cout << "Invalid input (too few numbers)!\n";
+
+    auto current_token{lexer.get_tokens().begin()};
+    auto next_token{current_token};
+    ++next_token;
+
+    for (; (*next_token) != LexerParser::TokenType::Eof;
+         ++current_token, ++next_token)
+    {
+        if (*current_token == TokenType::Forbiden)
+            std::cout << "Invalid token! Type : Forbiden; "
+                      << "token value: " << (*current_token).value << '\n';
+        else if (*next_token == TokenType::Forbiden)
+            std::cout << "Invalid token! Type : Forbiden; "
+                      << "token value: " << (*next_token).value << '\n';
+        else if (*current_token == TokenType::Number &&
+                 *next_token == TokenType::Number)
         {
-            while (!isspace(current_char) && !input_file.eof())
+            power = std::stoi((*current_token).value);
+            base = std::stoi((*next_token).value);
+            current_polynom->insert({power, base});
+            ++current_line;
+        }
+        else if (*current_token == TokenType::Newline &&
+                 *next_token == TokenType::Newline)
+        {
+            if (current_polynom != &polynom2)
+                current_polynom = &polynom2;
+            else
             {
-                current_token_value += current_char;
-                current_char = input_file.get();
+                std::cout << "[ERROR] Syntax error at line " << current_line
+                          << " two polynoms must be divided by two newlines!\n";
+                polynom1.clear();
+                polynom2.clear();
+                break;
             }
         }
-        add_token();
     }
+}
 
-    void Lexer::define_token_type(const std::string& token)
-    {
-        if (token == "\n")
-            current_token_type = TokenType::Newline;
-        else if (is_number(token))
-            current_token_type = TokenType::Number;
-        else
-            current_token_type = TokenType::Forbiden;
-    }
+inline const std::map<int, int>& Parser::get_polynom1() const
+{
+    return polynom1;
+}
 
-    void Lexer::add_token()
-    {
-        define_token_type(current_token_value);
-        tokens.emplace_back(current_token_type, current_token_value);
-        reset_current_token();
-    }
-
-    void Lexer::add_eof()
-    {
-        current_token_type = TokenType::Eof;
-        tokens.emplace_back(current_token_type);
-    }
-
-    void Lexer::reset_current_token()
-    {
-        if (current_token_type == TokenType::Newline)
-            current_char = input_file.get();
-
-        current_token_type = TokenType::Undefined;
-        current_token_value.clear();
-    }
-
-    bool Lexer::is_number(const std::string& token)
-    {
-        for (char symbol : token)
-            if (!isdigit(symbol))
-                return false;
-
-        return true;
-    }
-
-    void Lexer::parse()
-    {
-        if (!input_file.is_open())
-            return;
-
-        while (current_token_type != TokenType::Eof)
-            read_token();
-    }
-
-    inline const std::list<Token>& Lexer::get_tokens() const
-    {
-        return tokens;
-    }
-
-    // ------------------------------------------------------------------------
-
-    class Parser
-    {
-    private:
-        Lexer lexer;
-    };
-};
+inline const std::map<int, int>& Parser::get_polynom2() const
+{
+    return polynom2;
+}
+}; // namespace LexerParser
 
 int main()
 {
     LexerParser::Lexer lexer;
     lexer.parse();
-    size_t token_number{ 0 };
+    size_t token_number{0};
 
+    std::cout << "[DEBUG] Lexer has read theese tokens:\n";
     for (const LexerParser::Token& token : lexer.get_tokens())
     {
         switch (token.type)
         {
         case LexerParser::TokenType::Undefined:
-            std::cout << token_number << ". Token type: Undefined; "
-                << "token value: " << token.value << '\n';
+            std::cout << "[DEBUG] " << token_number
+                      << ". Token type: Undefined; "
+                      << "token value: " << token.value << '\n';
             break;
         case LexerParser::TokenType::Forbiden:
-            std::cout << token_number << ". Token type: Forbiden; "
-                << "token value: " << token.value << '\n';
+            std::cout << "[DEBUG] " << token_number
+                      << ". Token type: Forbiden; "
+                      << "token value: " << token.value << '\n';
             break;
         case LexerParser::TokenType::Newline:
-            std::cout << token_number << ". Token type: Newline; "
-                << "token value: \\n\n";
+            std::cout << "[DEBUG] " << token_number << ". Token type: Newline; "
+                      << "token value: \\n\n";
             break;
         case LexerParser::TokenType::Number:
-            std::cout << token_number << ". Token type: Number; "
-                << "token value: " << token.value << '\n';
+            std::cout << "[DEBUG] " << token_number << ". Token type: Number; "
+                      << "token value: " << token.value << '\n';
             break;
         case LexerParser::TokenType::Eof:
-            std::cout << token_number << ". Token type: Eof; "
-                << "token value: eof()";
+            std::cout << "[DEBUG] " << token_number << ". Token type: Eof; "
+                      << "token value: eof()\n";
             break;
         }
         ++token_number;
     }
+
+    LexerParser::Parser parser;
+    parser.parse();
+
+    std::cout << "[DEBUG] Polynom1: \n";
+    for (const auto& [power, base] : parser.get_polynom1())
+        std::cout << "[DEBUG] Power: " << power << ", base: " << base << '\n';
+
+    std::cout << "[DEBUG] Polynom2: \n";
+    for (const auto& [power, base] : parser.get_polynom2())
+        std::cout << "[DEBUG] Power: " << power << ", base: " << base << '\n';
 
     return 0;
 }
