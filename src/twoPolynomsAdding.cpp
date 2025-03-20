@@ -29,8 +29,8 @@ struct Token
     Token(const Token& other) : type(other.type), value(other.value) {};
     ~Token() = default;
 
-    // inline bool operator==(TokenType other) const;
-    // inline bool operator!=(TokenType other) const;
+    inline bool operator==(TokenType rhs) const;
+    inline bool operator!=(TokenType rhs) const;
     inline operator TokenType() const;
 
 private:
@@ -39,6 +39,10 @@ private:
     const Token& operator=(const Token&) = delete;
     Token&& operator=(Token&&) noexcept = delete;
 };
+
+inline bool Token::operator==(TokenType rhs) const { return this->type == rhs; }
+
+inline bool Token::operator!=(TokenType rhs) const { return this->type != rhs; }
 
 inline Token::operator TokenType() const { return type; }
 
@@ -75,7 +79,7 @@ Lexer::Lexer()
 {
     input_file.open("polynoms.txt", std::ios::in);
     if (!input_file.is_open())
-        std::cout << "Can't open input file!" << std::endl;
+        std::cout << "[FATAL] Can't open input file!" << std::endl;
 
     current_char = input_file.get();
 }
