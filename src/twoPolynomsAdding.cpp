@@ -185,6 +185,7 @@ private:
     size_t current_line;
 
     inline void reset();
+    inline void switch_polynoms() noexcept;
     inline void add_values(const Token& power, const Token& base);
 
 public:
@@ -204,9 +205,16 @@ inline void Parser::reset()
     polynom2.clear();
 }
 
+inline void Parser::switch_polynoms() noexcept
+{
+    current_polynom = &polynom2;
+    current_line += 2;
+}
+
 inline void Parser::add_values(const Token& power, const Token& base)
 {
     current_polynom->emplace(std::stoi(power.value), std::stoi(base.value));
+    ++current_line;
 }
 
 void Parser::parse()
@@ -234,15 +242,13 @@ void Parser::parse()
                  *next_token == TokenType::Number)
         {
             add_values(*current_token, *next_token);
-            ++current_line;
         }
         else if (*current_token == TokenType::Newline &&
                  *next_token == TokenType::Newline)
         {
             if (current_polynom != &polynom2)
             {
-                current_polynom = &polynom2;
-                current_line += 2;
+                switch_polynoms();
             }
             else
             {
@@ -300,7 +306,7 @@ std::map<int, int> PolynomProcessor::operator()(Binary_Op&& op)
     parser.parse();
     size_t iterations = find_max_key();
 
-    for (size_t i{0}; i < iterations; ++i)
+    for (size_t i{0}; i <= iterations; ++i)
     {
         result[i] = op(polynom1[i], polynom2[i]);
     }
