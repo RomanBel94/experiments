@@ -181,7 +181,6 @@ private:
     Lexer lexer;
     std::map<int, int> polynom1;
     std::map<int, int> polynom2;
-    std::map<int, int> result_polynom;
     std::map<int, int>* current_polynom;
     size_t current_line;
 
