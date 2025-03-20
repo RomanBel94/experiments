@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <list>
 #include <map>
@@ -26,7 +28,6 @@ struct Token
         : type(type), value(value)
     {
     }
-    Token(const Token& other) : type(other.type), value(other.value) {};
     ~Token() = default;
 
     inline bool operator==(TokenType rhs) const;
@@ -35,6 +36,7 @@ struct Token
 
 private:
     Token() = delete;
+    Token(const Token&) = delete;
     Token(Token&&) noexcept = delete;
     const Token& operator=(const Token&) = delete;
     Token&& operator=(Token&&) noexcept = delete;
@@ -69,7 +71,7 @@ public:
     Lexer();
     ~Lexer();
 
-    void parse();
+    inline void parse();
     inline const std::list<Token>& get_tokens() const;
 };
 
@@ -160,7 +162,7 @@ bool Lexer::is_number(const std::string& token)
     return true;
 }
 
-void Lexer::parse()
+inline void Lexer::parse()
 {
     if (!input_file.is_open())
         return;
@@ -184,21 +186,18 @@ private:
     size_t current_line;
 
     inline void reset();
-    void add_values(const Token& power, const Token& base);
+    inline void add_values(const Token& power, const Token& base);
 
 public:
     Parser();
     ~Parser() = default;
 
     void parse();
-    inline const std::map<int, int>& get_polynom1() const;
-    inline const std::map<int, int>& get_polynom2() const;
+    inline std::map<int, int>& get_polynom1();
+    inline std::map<int, int>& get_polynom2();
 };
 
-Parser::Parser() : current_polynom(&polynom1), current_line(1)
-{
-    lexer.parse();
-}
+Parser::Parser() : current_polynom(&polynom1), current_line(1) {}
 
 inline void Parser::reset()
 {
@@ -206,13 +205,14 @@ inline void Parser::reset()
     polynom2.clear();
 }
 
-void Parser::add_values(const Token& power, const Token& base)
+inline void Parser::add_values(const Token& power, const Token& base)
 {
     current_polynom->emplace(std::stoi(power.value), std::stoi(base.value));
 }
 
 void Parser::parse()
 {
+    lexer.parse();
     if (lexer.get_tokens().size() < 7)
         std::cout << "Invalid input (too few numbers)!\n";
 
@@ -247,8 +247,9 @@ void Parser::parse()
             }
             else
             {
-                std::cout << "[ERROR] Syntax error at line " << current_line
-                          << " two polynoms must be divided by two newlines!\n";
+                std::cout
+                    << "[FATAL] Syntax error at line " << current_line
+                    << " two polynoms must be divided by one empty line!\n";
                 reset();
                 break;
             }
@@ -256,14 +257,55 @@ void Parser::parse()
     }
 }
 
-inline const std::map<int, int>& Parser::get_polynom1() const
+inline std::map<int, int>& Parser::get_polynom1() { return polynom1; }
+
+inline std::map<int, int>& Parser::get_polynom2() { return polynom2; }
+
+// -----------------------------------------------------------------------
+
+class PolynomProcessor
 {
-    return polynom1;
+private:
+    Parser parser;
+    std::map<int, int>& polynom1;
+    std::map<int, int>& polynom2;
+
+    PolynomProcessor(const PolynomProcessor&) = delete;
+    PolynomProcessor(PolynomProcessor&&) noexcept = delete;
+    PolynomProcessor& operator=(const PolynomProcessor&) = delete;
+    PolynomProcessor&& operator=(PolynomProcessor&&) noexcept = delete;
+
+    inline size_t find_max_key();
+
+public:
+    PolynomProcessor();
+    ~PolynomProcessor() = default;
+
+    template <class Binary_Op>
+    std::map<int, int> operator()(Binary_Op&& op);
+};
+
+PolynomProcessor::PolynomProcessor()
+    : polynom1(parser.get_polynom1()), polynom2(parser.get_polynom2()) {};
+
+inline size_t PolynomProcessor::find_max_key()
+{
+    return std::max((*(polynom1.crbegin())).first,
+                    (*(polynom2.crbegin())).first);
 }
 
-inline const std::map<int, int>& Parser::get_polynom2() const
+template <class Binary_Op>
+std::map<int, int> PolynomProcessor::operator()(Binary_Op&& op)
 {
-    return polynom2;
+    std::map<int, int> result;
+    parser.parse();
+    size_t iterations = find_max_key();
+
+    for (size_t i{0}; i < iterations; ++i)
+    {
+        result[i] = op(polynom1[i], polynom2[i]);
+    }
+    return result;
 }
 }; // namespace LexerParser
 
@@ -271,18 +313,13 @@ int main()
 {
     LexerParser::Lexer lexer;
     lexer.parse();
-    size_t token_number{0};
+    size_t token_number{1};
 
     std::cout << "[DEBUG] Lexer has read theese tokens:\n";
     for (const LexerParser::Token& token : lexer.get_tokens())
     {
         switch (token.type)
         {
-        case LexerParser::TokenType::Undefined:
-            std::cout << "[DEBUG] " << token_number
-                      << ". Token type: Undefined; "
-                      << "token value: " << token.value << '\n';
-            break;
         case LexerParser::TokenType::Forbiden:
             std::cout << "[DEBUG] " << token_number
                       << ". Token type: Forbiden; "
@@ -300,6 +337,10 @@ int main()
             std::cout << "[DEBUG] " << token_number << ". Token type: Eof; "
                       << "token value: eof()\n";
             break;
+        default:
+            std::cout << "[DEBUG] " << token_number
+                      << ". Token type: Undefined; "
+                      << "token value: " << token.value << '\n';
         }
         ++token_number;
     }
@@ -313,6 +354,13 @@ int main()
 
     std::cout << "[DEBUG] Polynom2: \n";
     for (const auto& [power, base] : parser.get_polynom2())
+        std::cout << "[DEBUG] Power: " << power << ", base: " << base << '\n';
+
+    LexerParser::PolynomProcessor proc;
+    auto result = proc(std::plus());
+
+    std::cout << "[DEBUG] Result: \n";
+    for (const auto& [power, base] : result)
         std::cout << "[DEBUG] Power: " << power << ", base: " << base << '\n';
 
     return 0;
