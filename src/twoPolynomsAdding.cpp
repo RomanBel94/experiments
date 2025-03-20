@@ -105,7 +105,9 @@ void Lexer::read_token()
         return;
     }
     if (current_char == '\n')
+    {
         current_token_value += current_char;
+    }
     else
     {
         while (!isspace(current_char) && !input_file.eof())
@@ -180,8 +182,9 @@ private:
     std::map<int, int> result_polynom;
     std::map<int, int>* current_polynom;
     size_t current_line;
-    int power;
-    int base;
+
+    inline void reset();
+    void add_values(const Token& power, const Token& base);
 
 public:
     Parser();
@@ -192,10 +195,20 @@ public:
     inline const std::map<int, int>& get_polynom2() const;
 };
 
-Parser::Parser()
-    : current_polynom(&polynom1), power(0), base(0), current_line(1)
+Parser::Parser() : current_polynom(&polynom1), current_line(1)
 {
     lexer.parse();
+}
+
+inline void Parser::reset()
+{
+    polynom1.clear();
+    polynom2.clear();
+}
+
+void Parser::add_values(const Token& power, const Token& base)
+{
+    current_polynom->emplace(std::stoi(power.value), std::stoi(base.value));
 }
 
 void Parser::parse()
@@ -211,30 +224,32 @@ void Parser::parse()
          ++current_token, ++next_token)
     {
         if (*current_token == TokenType::Forbiden)
-            std::cout << "Invalid token! Type : Forbiden; "
-                      << "token value: " << (*current_token).value << '\n';
-        else if (*next_token == TokenType::Forbiden)
-            std::cout << "Invalid token! Type : Forbiden; "
-                      << "token value: " << (*next_token).value << '\n';
+        {
+            std::cout << "[FATAL] Invalid token at line " << current_line
+                      << ". Type: Forbiden, "
+                      << "value: " << (*current_token).value << '\n';
+            reset();
+            break;
+        }
         else if (*current_token == TokenType::Number &&
                  *next_token == TokenType::Number)
         {
-            power = std::stoi((*current_token).value);
-            base = std::stoi((*next_token).value);
-            current_polynom->insert({power, base});
+            add_values(*current_token, *next_token);
             ++current_line;
         }
         else if (*current_token == TokenType::Newline &&
                  *next_token == TokenType::Newline)
         {
             if (current_polynom != &polynom2)
+            {
                 current_polynom = &polynom2;
+                current_line += 2;
+            }
             else
             {
                 std::cout << "[ERROR] Syntax error at line " << current_line
                           << " two polynoms must be divided by two newlines!\n";
-                polynom1.clear();
-                polynom2.clear();
+                reset();
                 break;
             }
         }
