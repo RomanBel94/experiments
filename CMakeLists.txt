@@ -55,3 +55,5 @@ add_executable(lambdaInheritance ${CMAKE_CURRENT_SOURCE_DIR}/src/lambdaInheritan
 set_property(TARGET lambdaInheritance PROPERTY CXX_STANDARD 17)
 
 add_executable(placementNew ${CMAKE_CURRENT_SOURCE_DIR}/src/placementNew.cpp)
+
+add_executable(regex ${CMAKE_CURRENT_SOURCE_DIR}/src/regex.cpp)
