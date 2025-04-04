@@ -1,4 +1,4 @@
-Green 15
-YellowToRed 2
-Red 10
-YellowToGreen 5
+Green 7
+YellowToRed 3
+Red 5
+YellowToGreen 2

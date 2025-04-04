@@ -8,28 +8,36 @@
 class TraficLightManager
 {
 public:
-    TraficLightManager();
+    TraficLightManager() noexcept;
 
     void run() noexcept;
 
 private:
-    inline void _print_current_parameters() noexcept;
-    inline void _read_configuration_file() noexcept;
+    static inline void _sleep(int seconds) noexcept;
 
-    std::ifstream configuration_file;
+    inline void _print_current_parameters() noexcept;
+
+    static const std::string light_icon;
+
     std::unordered_map<std::string, int> delays;
 };
 
-TraficLightManager::TraficLightManager()
+const std::string TraficLightManager::light_icon(3, 219U);
+
+TraficLightManager::TraficLightManager() noexcept
     : delays{{"Green", 1}, {"YellowToRed", 1}, {"Red", 1}, {"YellowToGreen", 1}}
 {
-    configuration_file.open("trafic_light_config.txt");
+    std::ifstream configuration_file("trafic_light_config.txt");
     if (!configuration_file)
-        std::cerr << "Can't open configuration file! Default delay values are "
-                     "applied.\n";
+        std::cerr
+            << "Config file not open! Default delays (1sec) are applied.\n";
     else
     {
-        _read_configuration_file();
+        std::string parameter;
+        while (configuration_file >> parameter)
+        {
+            configuration_file >> delays[parameter];
+        }
     }
 #ifndef DNDEBUG
     _print_current_parameters();
@@ -38,24 +46,21 @@ TraficLightManager::TraficLightManager()
 
 void TraficLightManager::run() noexcept
 {
-    std::cout << "Press Ctrl+C to stop the traffic light\n";
     while (true)
     {
-        std::cout << "[\033[92m*\033[0m] Green " << delays["Green"]
-                  << " sec...\n";
-        std::this_thread::sleep_for(
-            std::chrono::duration<int>(std::chrono::seconds(delays["Green"])));
-        std::cout << "[\033[93m*\033[0m] YellowToRed " << delays["YellowToRed"]
-                  << " sec...\n";
-        std::this_thread::sleep_for(std::chrono::duration<int>(
-            std::chrono::seconds(delays["YellowToRed"])));
-        std::cout << "[\033[91m*\033[0m] Red " << delays["Red"] << " sec...\n";
-        std::this_thread::sleep_for(
-            std::chrono::duration<int>(std::chrono::seconds(delays["Red"])));
-        std::cout << "[\033[93m*\033[0m] YellowToGreen "
-                  << delays["YellowToGreen"] << " sec...\n";
-        std::this_thread::sleep_for(std::chrono::duration<int>(
-            std::chrono::seconds(delays["YellowToGreen"])));
+        std::cout << "Press Ctrl+C to stop the traffic light\n";
+
+        std::cout << "\033[92m" << light_icon << "\033[0m\n";
+        _sleep(delays["Green"]);
+
+        std::cout << "\033[93m" << light_icon << "\033[0m\n";
+        _sleep(delays["YellowToRed"]);
+
+        std::cout << "\033[91m" << light_icon << "\033[0m\n";
+        _sleep(delays["Red"]);
+
+        std::cout << "\033[93m" << light_icon << "\033[0m\n";
+        _sleep(delays["YellowToGreen"]);
     }
 }
 
@@ -68,13 +73,10 @@ void TraficLightManager::_print_current_parameters() noexcept
     }
 }
 
-void TraficLightManager::_read_configuration_file() noexcept
+void TraficLightManager::_sleep(int seconds) noexcept
 {
-    std::string parameter;
-    while (configuration_file >> parameter)
-    {
-        configuration_file >> delays[parameter];
-    }
+    std::this_thread::sleep_for(
+        std::chrono::duration<int>(std::chrono::seconds(seconds)));
 }
 
 int main()
