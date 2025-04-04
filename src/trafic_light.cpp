@@ -45,7 +45,7 @@ void TraficLightManager::run() noexcept
                   << " sec...\n";
         std::this_thread::sleep_for(
             std::chrono::duration<int>(std::chrono::seconds(delays["Green"])));
-        std::cout << "[\033[93m*\033[0m] " << delays["YellowToRed"]
+        std::cout << "[\033[93m*\033[0m] YellowToRed" << delays["YellowToRed"]
                   << " sec...\n";
         std::this_thread::sleep_for(std::chrono::duration<int>(
             std::chrono::seconds(delays["YellowToRed"])));
