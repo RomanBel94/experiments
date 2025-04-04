@@ -45,15 +45,14 @@ add_executable(callingFabricFunctionWithDifferentArguments
 
 add_executable(numberRenderer ${CMAKE_CURRENT_SOURCE_DIR}/src/numberRenderer.cpp)
 
-add_executable(twoPolynomsAdding ${CMAKE_CURRENT_SOURCE_DIR}/src/twoPolynomsAdding.cpp)
-set_property(TARGET twoPolynomsAdding PROPERTY CXX_STANDARD 17)
-add_custom_command(TARGET twoPolynomsAdding
-    POST_BUILD
-    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/polynoms.txt ${CMAKE_CURRENT_BINARY_DIR})
-
 add_executable(lambdaInheritance ${CMAKE_CURRENT_SOURCE_DIR}/src/lambdaInheritance.cpp)
 set_property(TARGET lambdaInheritance PROPERTY CXX_STANDARD 17)
 
 add_executable(placementNew ${CMAKE_CURRENT_SOURCE_DIR}/src/placementNew.cpp)
 
 add_executable(regex ${CMAKE_CURRENT_SOURCE_DIR}/src/regex.cpp)
+
+add_executable(trafic_light ${CMAKE_CURRENT_SOURCE_DIR}/src/trafic_light.cpp)
+add_custom_command(TARGET trafic_light
+    POST_BUILD
+    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/trafic_light_config.txt ${CMAKE_CURRENT_BINARY_DIR})
