@@ -9,6 +9,7 @@ class TraficLightManager
 {
 public:
     TraficLightManager() noexcept;
+    ~TraficLightManager() noexcept = default;
 
     void run() noexcept;
 
@@ -18,11 +19,19 @@ private:
     inline void _print_current_parameters() noexcept;
 
     static const std::string light_icon;
+    static const std::string color_green;
+    static const std::string color_yellow;
+    static const std::string color_red;
+    static const std::string color_white;
 
     std::unordered_map<std::string, int> delays;
 };
 
 const std::string TraficLightManager::light_icon(3, 219U);
+const std::string TraficLightManager::color_green{"\033[92m"};
+const std::string TraficLightManager::color_yellow{"\033[93m"};
+const std::string TraficLightManager::color_red{"\033[91m"};
+const std::string TraficLightManager::color_white{"\033[0m\n"};
 
 TraficLightManager::TraficLightManager() noexcept
     : delays{{"Green", 1}, {"YellowToRed", 1}, {"Red", 1}, {"YellowToGreen", 1}}
@@ -52,16 +61,16 @@ void TraficLightManager::run() noexcept
         if (counter++ % 5 == 0)
             std::cout << "Press Ctrl+C to stop the traffic light\n";
 
-        std::cout << "\033[92m" << light_icon << "\033[0m\n";
+        std::cout << color_green << light_icon << color_white;
         _sleep(delays["Green"]);
 
-        std::cout << "\033[93m" << light_icon << "\033[0m\n";
+        std::cout << color_yellow << light_icon << color_white;
         _sleep(delays["YellowToRed"]);
 
-        std::cout << "\033[91m" << light_icon << "\033[0m\n";
+        std::cout << color_red << light_icon << color_white;
         _sleep(delays["Red"]);
 
-        std::cout << "\033[93m" << light_icon << "\033[0m\n";
+        std::cout << color_yellow << light_icon << color_white;
         _sleep(delays["YellowToGreen"]);
     }
 }
