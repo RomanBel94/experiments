@@ -46,9 +46,11 @@ TraficLightManager::TraficLightManager() noexcept
 
 void TraficLightManager::run() noexcept
 {
+    size_t counter{0};
     while (true)
     {
-        std::cout << "Press Ctrl+C to stop the traffic light\n";
+        if (counter++ % 5 == 0)
+            std::cout << "Press Ctrl+C to stop the traffic light\n";
 
         std::cout << "\033[92m" << light_icon << "\033[0m\n";
         _sleep(delays["Green"]);
