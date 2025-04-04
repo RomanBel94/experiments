@@ -8,33 +8,43 @@
 class TraficLightManager
 {
 public:
+    // Constructor and destructor.
     TraficLightManager() noexcept;
     ~TraficLightManager() noexcept = default;
 
-    void run() noexcept;
+    // Main function of each trafic_light.
+    void run() const noexcept;
 
 private:
+    // Delay switching to the next signal.
     static inline void _sleep(int seconds) noexcept;
 
-    inline void _print_current_parameters() noexcept;
+    // Print debug information about current configuration.
+    inline void _print_current_configuration() const noexcept;
 
+    // Common variables.
     static const std::string light_icon;
     static const std::string color_green;
     static const std::string color_yellow;
     static const std::string color_red;
     static const std::string color_white;
 
-    std::unordered_map<std::string, int> delays;
+    // Configuration hashmap of this trafic light.
+    mutable std::unordered_map<std::string, int> m_configuration;
 };
 
+// Definition of common variables.
 const std::string TraficLightManager::light_icon(3, 219U);
 const std::string TraficLightManager::color_green{"\033[92m"};
 const std::string TraficLightManager::color_yellow{"\033[93m"};
 const std::string TraficLightManager::color_red{"\033[91m"};
 const std::string TraficLightManager::color_white{"\033[0m\n"};
 
+// Reads configuration file and fills self configuration hashmap,
+// if can't read configuration file applies default values.
 TraficLightManager::TraficLightManager() noexcept
-    : delays{{"Green", 1}, {"YellowToRed", 1}, {"Red", 1}, {"YellowToGreen", 1}}
+    : m_configuration{
+          {"Green", 1}, {"YellowToRed", 1}, {"Red", 1}, {"YellowToGreen", 1}}
 {
     std::ifstream configuration_file("trafic_light_config.txt");
     if (!configuration_file)
@@ -45,15 +55,16 @@ TraficLightManager::TraficLightManager() noexcept
         std::string parameter;
         while (configuration_file >> parameter)
         {
-            configuration_file >> delays[parameter];
+            configuration_file >> m_configuration[parameter];
         }
     }
 #ifndef DNDEBUG
-    _print_current_parameters();
+    _print_current_configuration();
 #endif
 }
 
-void TraficLightManager::run() noexcept
+// Endless loop that prints current light icon with different colors.
+void TraficLightManager::run() const noexcept
 {
     size_t counter{0};
     while (true)
@@ -62,28 +73,31 @@ void TraficLightManager::run() noexcept
             std::cout << "Press Ctrl+C to stop the traffic light\n";
 
         std::cout << color_green << light_icon << color_white;
-        _sleep(delays["Green"]);
+        _sleep(m_configuration["Green"]);
 
         std::cout << color_yellow << light_icon << color_white;
-        _sleep(delays["YellowToRed"]);
+        _sleep(m_configuration["YellowToRed"]);
 
         std::cout << color_red << light_icon << color_white;
-        _sleep(delays["Red"]);
+        _sleep(m_configuration["Red"]);
 
         std::cout << color_yellow << light_icon << color_white;
-        _sleep(delays["YellowToGreen"]);
+        _sleep(m_configuration["YellowToGreen"]);
     }
 }
 
-void TraficLightManager::_print_current_parameters() noexcept
+// Prints current gonfiguration values.
+void TraficLightManager::_print_current_configuration() const noexcept
 {
     std::cout << "[DEBUG] Current delay parameters are: \n";
-    for (const std::pair<std::string, int>& delay : delays)
+    for (const std::pair<std::string, int>& parameter : m_configuration)
     {
-        std::cout << "[DEBUG] " << delay.first << ' ' << delay.second << '\n';
+        std::cout << "[DEBUG] " << parameter.first << ": " << parameter.second
+                  << " sec\n";
     }
 }
 
+// Stops running this thread for given nuber of seconds.
 void TraficLightManager::_sleep(int seconds) noexcept
 {
     std::this_thread::sleep_for(
