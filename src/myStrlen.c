@@ -1,10 +1,11 @@
 #include <stddef.h>
 #include <stdio.h>
 
-size_t my_strlen(const char* str)
+ptrdiff_t my_strlen(const char* str)
 {
     const char* end = str;
-    while(*end) ++end;
+    while (*end)
+        ++end;
 
     return end - str;
 }
