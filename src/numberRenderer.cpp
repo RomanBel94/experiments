@@ -1,7 +1,9 @@
 #include <array>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 
 constexpr size_t VERTICAL_SPACE = 1;
@@ -179,13 +181,8 @@ int main(int argc, char* argv[])
     numbers.insert({'9', nine});
 
     // take a number from arguments
-    std::string number{argv[1]};
-
-    // fill with zeros if number is lower than 100
-    if (number.size() == 1)
-        number = "00" + number;
-    else if (number.size() == 2)
-        number = '0' + number;
+    std::ostringstream number;
+    number << std::setw(DIGIT_NUMBER) << std::setfill('0') << argv[1];
 
     // create and initialize buffer for drawing
     char buffer[BUFFER_HEIGHT][BUFFER_WIDTH];
@@ -195,7 +192,7 @@ int main(int argc, char* argv[])
     // digits will be drawn
     for (size_t i = 0; i < DIGIT_NUMBER; ++i)
     {
-        write_to_buffer(numbers[number[i]],
+        write_to_buffer(numbers[number.str()[i]],
                         (DIGIT_WIDTH + HORIZONTAL_SPACE) * i + HORIZONTAL_SPACE,
                         VERTICAL_SPACE, buffer);
     }
