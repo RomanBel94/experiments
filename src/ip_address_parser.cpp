@@ -7,6 +7,7 @@
 
 class IPaddress
 {
+private:
     uint8_t octet0 = 0;
     uint8_t octet1 = 0;
     uint8_t octet2 = 0;
@@ -16,6 +17,11 @@ public:
     IPaddress(uint8_t oct3, uint8_t oct2, uint8_t oct1, uint8_t oct0)
         : octet3{oct3}, octet2{oct2}, octet1{oct1}, octet0{oct0} {};
     IPaddress() = default;
+    IPaddress(const IPaddress&) = default;
+    IPaddress(IPaddress&&) noexcept = default;
+    IPaddress& operator=(const IPaddress&) = default;
+    IPaddress& operator=(IPaddress&&) = default;
+    ~IPaddress() = default;
 
     std::string get_address() const noexcept { return *this; }
     uint32_t get_byte_view() const noexcept { return *this; }
