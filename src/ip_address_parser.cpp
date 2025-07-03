@@ -27,10 +27,10 @@ public:
     operator std::string() const noexcept
     {
         std::ostringstream result;
-        result << static_cast<uint16_t>(octet3) << '.'
-               << static_cast<uint16_t>(octet2) << '.'
-               << static_cast<uint16_t>(octet1) << '.'
-               << static_cast<uint16_t>(octet0);
+        result << static_cast<uint16_t>(get_octet3()) << '.'
+               << static_cast<uint16_t>(get_octet2()) << '.'
+               << static_cast<uint16_t>(get_octet1()) << '.'
+               << static_cast<uint16_t>(get_octet0());
         return result.str();
     }
 
@@ -41,6 +41,24 @@ public:
 
         return result;
     }
+
+    static IPaddress create_IP(const std::string& addr)
+    {
+        std::regex ip_regex{R"(\d+\.\d+\.\d+\.\d+)"};
+        if (!std::regex_match(addr, ip_regex))
+        {
+            throw std::invalid_argument{__FUNCTION__ "(): bad ip address"};
+        }
+        std::array<uint8_t, 4> octs{};
+        std::istringstream istr{addr};
+        std::string temp;
+        for (int i{0}; i < 4; ++i)
+        {
+            std::getline(istr, temp, '.');
+            octs.at(3 - i) = std::stoi(temp);
+        }
+        return IPaddress{octs[3], octs[2], octs[1], octs[0]};
+    }
 };
 
 std::ostream& operator<<(std::ostream& stream, const IPaddress& addr) noexcept
@@ -49,30 +67,12 @@ std::ostream& operator<<(std::ostream& stream, const IPaddress& addr) noexcept
     return stream;
 }
 
-IPaddress create_IP(const std::string& addr)
-{
-    std::regex ip_regex{R"(\d+\.\d+\.\d+\.\d+)"};
-    if (!std::regex_match(addr, ip_regex))
-    {
-        throw std::invalid_argument{"bad ip address"};
-    }
-    std::array<uint8_t, 4> octs{};
-    std::istringstream istr{addr};
-    std::string temp;
-    for (int i{0}; i < 4; ++i)
-    {
-        std::getline(istr, temp, '.');
-        octs[3 - i] = std::stoi(temp);
-    }
-    return {octs[3], octs[2], octs[1], octs[0]};
-}
-
 int main(int argc, char* argv[])
 {
     IPaddress addr;
     try
     {
-        addr = create_IP("10.243.25.168");
+        addr = IPaddress::create_IP("10.243.25.168");
     }
     catch (const std::exception& e)
     {
