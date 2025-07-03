@@ -56,3 +56,5 @@ add_executable(trafic_light ${CMAKE_CURRENT_SOURCE_DIR}/src/trafic_light.cpp)
 add_custom_command(TARGET trafic_light
     POST_BUILD
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/trafic_light_config.txt ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(ip_address_parser ${CMAKE_CURRENT_SOURCE_DIR}/src/ip_address_parser.cpp)
