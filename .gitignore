@@ -3,3 +3,4 @@ out/
 .vs/
 /src/polynoms.txt
 /src/twoPolynomsAdding.cpp
+.vscode/
