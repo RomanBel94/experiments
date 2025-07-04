@@ -43,7 +43,10 @@ public:
     operator uint32_t() const noexcept
     {
         uint32_t result{0};
-        result |= octet0 | octet1 << 8 | octet2 << 16 | octet3 << 24;
+        result |= octet3, result <<= 8;
+        result |= octet2, result <<= 8;
+        result |= octet1, result <<= 8;
+        result |= octet0;
 
         return result;
     }
@@ -53,15 +56,17 @@ public:
         std::regex ip_regex{R"(\d+\.\d+\.\d+\.\d+)"};
         if (!std::regex_match(addr, ip_regex))
         {
-            throw std::invalid_argument{__FUNCTION__ "(): bad ip address"};
+            std::ostringstream message;
+            message << __FUNCTION__ << "(): bad ip address";
+            throw std::invalid_argument{message.str()};
         }
         std::array<uint8_t, 4> octs{};
         std::istringstream istr{addr};
-        std::string temp;
+        std::string buffer;
         for (int i{0}; i < 4; ++i)
         {
-            std::getline(istr, temp, '.');
-            octs.at(3 - i) = std::stoi(temp);
+            std::getline(istr, buffer, '.');
+            octs.at(3 - i) = std::stoi(buffer);
         }
         return IPaddress{octs[3], octs[2], octs[1], octs[0]};
     }
@@ -73,19 +78,64 @@ std::ostream& operator<<(std::ostream& stream, const IPaddress& addr) noexcept
     return stream;
 }
 
+template <typename Integer>
+void show_bits(Integer num)
+{
+    Integer offset{sizeof(Integer) * 8 - 1};
+    for (Integer ptr{static_cast<Integer>(1 << offset)}; ptr; ptr >>= 1)
+    {
+        if (num & ptr)
+            std::cout << '1';
+        else
+            std::cout << '0';
+        std::cout << ' ';
+    }
+}
+
+void describe_IP(const IPaddress& addr)
+{
+    std::cout << addr << '\n';
+    std::cout << "Octet3: ";
+    show_bits(addr.get_octet3());
+    std::cout << '\n';
+    std::cout << "Octet2: ";
+    show_bits(addr.get_octet2());
+    std::cout << '\n';
+    std::cout << "Octet1: ";
+    show_bits(addr.get_octet1());
+    std::cout << '\n';
+    std::cout << "Octet0: ";
+    show_bits(addr.get_octet0());
+    std::cout << '\n';
+    std::cout << "Full address: ";
+    show_bits(addr.get_byte_view());
+    std::cout << '\n';
+}
+
 int main(int argc, char* argv[])
 {
     IPaddress addr;
-    try
-    {
-        addr = IPaddress::create_IP("10.243.25.168");
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        return EXIT_FAILURE;
-    }
+    std::string input;
 
-    std::cout << addr << '\n';
+    while (true)
+    {
+        std::cout << "Enter IP address (or type \"exit\"): ";
+        std::getline(std::cin, input, '\n');
+        if (input == "exit")
+            break;
+
+        try
+        {
+            addr = IPaddress::create_IP(input);
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            continue;
+        }
+
+        describe_IP(addr);
+    };
+
     return EXIT_SUCCESS;
 }
