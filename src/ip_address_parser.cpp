@@ -58,6 +58,7 @@ public:
     {
         return octets.at(index);
     }
+
     inline void set_octet(size_t index, uint8_t octet)
     {
         octets.at(index) = octet;
