@@ -37,12 +37,18 @@ public:
     IPaddress& operator=(IPaddress&&) noexcept = default;
     ~IPaddress() = default;
 
-    std::string get_string() const noexcept { return *this; }
-    uint32_t get_byte_view() const noexcept { return *this; }
-    uint8_t get_octet(size_t index) const noexcept { return octets.at(index); }
-    void set_octet(size_t index, uint8_t octet) { octets.at(index) = octet; }
+    inline std::string get_string() const noexcept { return *this; }
+    inline uint32_t get_byte_view() const noexcept { return *this; }
+    inline uint8_t get_octet(size_t index) const noexcept
+    {
+        return octets.at(index);
+    }
+    inline void set_octet(size_t index, uint8_t octet)
+    {
+        octets.at(index) = octet;
+    }
 
-    operator std::string() const noexcept
+    inline operator std::string() const noexcept
     {
         std::ostringstream result;
         result << static_cast<uint16_t>(get_octet(3)) << '.'
@@ -52,7 +58,7 @@ public:
         return result.str();
     }
 
-    operator uint32_t() const noexcept
+    inline operator uint32_t() const noexcept
     {
         uint32_t result{0};
         result |= get_octet(3), result <<= 8;
@@ -63,7 +69,7 @@ public:
         return result;
     }
 
-    static void validate_ip(const std::string& addr)
+    static inline void validate_ip(const std::string& addr)
     {
         std::regex ip_regex{R"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"};
 
@@ -75,7 +81,7 @@ public:
         }
     }
 
-    static IPaddress create_IP(const std::string& addr)
+    static inline IPaddress create_IP(const std::string& addr)
     {
         validate_ip(addr);
 
@@ -91,14 +97,15 @@ public:
     }
 };
 
-std::ostream& operator<<(std::ostream& stream, const IPaddress& addr) noexcept
+inline std::ostream& operator<<(std::ostream& stream,
+                                const IPaddress& addr) noexcept
 {
     stream << addr.get_string();
     return stream;
 }
 
 template <typename Integer>
-void show_bits(Integer num)
+inline void show_bits(Integer num)
 {
     Integer offset{sizeof(Integer) * 8 - 1};
     for (Integer ptr{static_cast<Integer>(1 << offset)}; ptr; ptr >>= 1)
@@ -111,7 +118,7 @@ void show_bits(Integer num)
     }
 }
 
-void describe_IP(const IPaddress& addr)
+inline void describe_IP(const IPaddress& addr)
 {
     std::cout << addr << '\n';
     for (int i{3}; i >= 0; --i)
