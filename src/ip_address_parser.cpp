@@ -25,7 +25,7 @@ public:
         for (size_t i{0}; i < 4; ++i)
         {
             current_octet |= byte_view >> i * 8;
-            set_octet(current_octet, i);
+            set_octet(i, current_octet);
             current_octet = 0;
         }
     }
@@ -40,7 +40,7 @@ public:
     std::string get_string() const noexcept { return *this; }
     uint32_t get_byte_view() const noexcept { return *this; }
     uint8_t get_octet(size_t index) const noexcept { return octets.at(index); }
-    void set_octet(uint8_t octet, size_t index) { octets.at(index) = octet; }
+    void set_octet(size_t index, uint8_t octet) { octets.at(index) = octet; }
 
     operator std::string() const noexcept
     {
@@ -85,7 +85,7 @@ public:
         for (int i{3}; i >= 0; --i)
         {
             std::getline(istr, buffer, '.');
-            result.set_octet(stoi(buffer), i);
+            result.set_octet(i, stoi(buffer));
         }
         return result;
     }
