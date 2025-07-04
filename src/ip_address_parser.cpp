@@ -1,11 +1,52 @@
 #include <array>
+#include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
-class IPaddress
+class Timer final
+{
+public:
+    template <class Callable, typename... Args>
+    inline void operator()(Callable&& func_object, Args&&... args) const
+    {
+        std::chrono::steady_clock::time_point start{
+            std::chrono::steady_clock::now()};
+        func_object(std::forward<Args>(args)...);
+        std::chrono::steady_clock::time_point end{
+            std::chrono::steady_clock::now()};
+        std::chrono::duration<double> time_passed{
+            std::chrono::duration_cast<std::chrono::duration<double>>(end -
+                                                                      start)};
+
+        std::clog << "Time passed: " << std::fixed << std::setprecision(5)
+                  << time_passed.count() << "ms\n";
+    }
+
+    template <typename ReturnType, class Callable, typename... Args>
+    inline ReturnType operator()(Callable&& func_object, Args&&... args) const
+    {
+        std::chrono::steady_clock::time_point start{
+            std::chrono::steady_clock::now()};
+        ReturnType temp = func_object(std::forward<Args>(args)...);
+        std::chrono::steady_clock::time_point end{
+            std::chrono::steady_clock::now()};
+        std::chrono::duration<double> time_passed{
+            std::chrono::duration_cast<std::chrono::duration<double>>(end -
+                                                                      start)};
+
+        std::cout << "Time passed: " << std::fixed << std::setprecision(5)
+                  << time_passed.count() << "ms\n";
+
+        return temp;
+    }
+};
+
+class IPaddress final
 {
 private:
     std::array<uint8_t, 4> octets{};
@@ -136,6 +177,7 @@ inline void describe_IP(const IPaddress& addr)
 
 int main(int argc, char* argv[])
 {
+    Timer measure;
     IPaddress addr;
     std::string input;
 
@@ -151,7 +193,7 @@ int main(int argc, char* argv[])
 
         try
         {
-            addr = IPaddress::create_IP(input);
+            addr = measure.operator()<IPaddress>(IPaddress::create_IP, input);
             describe_IP(addr);
         }
         catch (const std::exception& e)
