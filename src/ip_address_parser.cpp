@@ -33,18 +33,7 @@ public:
     IPaddress& operator=(IPaddress&&) noexcept = default;
     ~IPaddress() = default;
 
-    inline std::string get_string() const noexcept { return *this; }
-    inline uint32_t get_byte_view() const noexcept { return *this; }
-    inline uint8_t get_octet(size_t index) const noexcept
-    {
-        return octets.at(index);
-    }
-    inline void set_octet(size_t index, uint8_t octet)
-    {
-        octets.at(index) = octet;
-    }
-
-    inline operator std::string() const noexcept
+    inline std::string to_string() const noexcept
     {
         std::ostringstream result;
         result << static_cast<uint16_t>(get_octet(3)) << '.'
@@ -54,7 +43,7 @@ public:
         return result.str();
     }
 
-    inline operator uint32_t() const noexcept
+    inline uint32_t to_uint32() const noexcept
     {
         uint32_t result{0};
         result |= get_octet(3), result <<= 8;
@@ -64,6 +53,19 @@ public:
 
         return result;
     }
+
+    inline uint8_t get_octet(size_t index) const noexcept
+    {
+        return octets.at(index);
+    }
+    inline void set_octet(size_t index, uint8_t octet)
+    {
+        octets.at(index) = octet;
+    }
+
+    inline operator std::string() const noexcept { return to_string(); }
+
+    inline operator uint32_t() const noexcept { return to_uint32(); }
 
     static inline void validate_ip(const std::string& addr)
     {
@@ -96,7 +98,7 @@ public:
 inline std::ostream& operator<<(std::ostream& stream,
                                 const IPaddress& addr) noexcept
 {
-    stream << addr.get_string();
+    stream << addr.to_string();
     return stream;
 }
 
@@ -125,8 +127,8 @@ inline void describe_IP(const IPaddress& addr)
         std::cout << '\n';
     }
 
-    std::cout << "Full address: (" << addr.get_byte_view() << ") ";
-    show_bits(addr.get_byte_view());
+    std::cout << "Full address: (" << addr.to_uint32() << ") ";
+    show_bits(addr.to_uint32());
     std::cout << '\n';
 }
 
@@ -148,14 +150,12 @@ int main(int argc, char* argv[])
         try
         {
             addr = IPaddress::create_IP(input);
+            describe_IP(addr);
         }
         catch (const std::exception& e)
         {
             std::cerr << e.what() << '\n';
-            continue;
         }
-
-        describe_IP(addr);
     };
 
     return EXIT_SUCCESS;
