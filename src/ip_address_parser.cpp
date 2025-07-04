@@ -159,9 +159,8 @@ inline void show_bits(Integer num)
     }
 }
 
-inline void describe_IP(const IPaddress& addr)
+inline void show_octets(const IPaddress& addr)
 {
-    std::cout << addr << '\n';
     for (int i{3}; i >= 0; --i)
     {
         std::cout << "Octet" << i << ": ("
@@ -169,9 +168,20 @@ inline void describe_IP(const IPaddress& addr)
         show_bits(addr.get_octet(i));
         std::cout << '\n';
     }
+}
 
+inline void show_full(const IPaddress& addr)
+{
     std::cout << "Full address: (" << addr.to_uint32() << ") ";
     show_bits(addr.to_uint32());
+}
+
+inline void describe_IP(const IPaddress& addr)
+{
+    std::cout << addr << '\n';
+    show_octets(addr);
+
+    show_full(addr);
     std::cout << '\n';
 }
 
