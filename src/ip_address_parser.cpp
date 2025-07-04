@@ -5,13 +5,12 @@
 #include <stdexcept>
 #include <string>
 
-constexpr auto VALID_IP_REGEX =
-    R"(((\d|1\d{1,2}|2[0-5]{1,2}|[1-9]\d)\.){3}(1\d{1,2}|2[0-5]{1,2}|[1-9]\d|\d))";
-
 class IPaddress
 {
 private:
     std::array<uint8_t, 4> octets{};
+    static constexpr auto VALID_IP_REGEX =
+        R"(((\d|1\d{1,2}|2[0-5]{1,2}|[1-9]\d)\.){3}(1\d{1,2}|2[0-5]{1,2}|[1-9]\d|\d))";
 
 public:
     IPaddress(uint8_t oct3, uint8_t oct2, uint8_t oct1, uint8_t oct0)
