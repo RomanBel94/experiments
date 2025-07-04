@@ -114,18 +114,14 @@ void show_bits(Integer num)
 void describe_IP(const IPaddress& addr)
 {
     std::cout << addr << '\n';
-    std::cout << "Octet3: ";
-    show_bits(addr.get_octet(3));
-    std::cout << '\n';
-    std::cout << "Octet2: ";
-    show_bits(addr.get_octet(2));
-    std::cout << '\n';
-    std::cout << "Octet1: ";
-    show_bits(addr.get_octet(1));
-    std::cout << '\n';
-    std::cout << "Octet0: ";
-    show_bits(addr.get_octet(0));
-    std::cout << '\n';
+    for (int i{3}; i >= 0; --i)
+    {
+        std::cout << "Octet" << i << ": ("
+                  << static_cast<uint16_t>(addr.get_octet(i)) << ") ";
+        show_bits(addr.get_octet(i));
+        std::cout << '\n';
+    }
+
     std::cout << "Full address: ";
     show_bits(addr.get_byte_view());
     std::cout << '\n';
