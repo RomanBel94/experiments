@@ -38,7 +38,6 @@ public:
         std::chrono::duration<double> time_passed{
             std::chrono::duration_cast<std::chrono::duration<double>>(end -
                                                                       start)};
-
         std::cout << "Time passed: " << std::fixed << std::setprecision(5)
                   << time_passed.count() << "ms\n";
 
@@ -51,7 +50,7 @@ class IPaddress final
 private:
     std::array<uint8_t, 4> octets{};
     static constexpr auto VALID_IP_REGEX =
-        R"(((\d|1\d{1,2}|2[0-5]{1,2}|[1-9]\d)\.){3}(1\d{1,2}|2[0-5]{1,2}|[1-9]\d|\d))";
+        R"(((\d|1\d{1,2}|2[0-5]{1,2}|2[0-5]\d|[1-9]\d)\.){3}(1\d{1,2}|2[0-5]{1,2}|2[0-]\d|[1-9]\d|\d))";
 
 public:
     IPaddress(uint8_t oct3, uint8_t oct2, uint8_t oct1, uint8_t oct0)
