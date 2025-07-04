@@ -23,11 +23,7 @@ public:
     {
         uint8_t current_octet{0};
         for (size_t i{0}; i < 4; ++i)
-        {
-            current_octet |= byte_view >> i * 8;
-            set_octet(i, current_octet);
-            current_octet = 0;
-        }
+            set_octet(i, current_octet | byte_view >> i * 8);
     }
 
     IPaddress() = default;
@@ -107,7 +103,7 @@ inline std::ostream& operator<<(std::ostream& stream,
 template <typename Integer>
 inline void show_bits(Integer num)
 {
-    Integer offset{sizeof(Integer) * 8 - 1};
+    uint8_t offset{sizeof(Integer) * 8 - 1};
     for (Integer ptr{static_cast<Integer>(1 << offset)}; ptr; ptr >>= 1)
     {
         if (num & ptr)
