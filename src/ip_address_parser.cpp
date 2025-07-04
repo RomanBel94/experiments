@@ -38,7 +38,8 @@ public:
         std::chrono::duration<double> time_passed{
             std::chrono::duration_cast<std::chrono::duration<double>>(end -
                                                                       start)};
-        std::cout << "Time passed: " << std::fixed << std::setprecision(5)
+
+        std::clog << "Time passed: " << std::fixed << std::setprecision(5)
                   << time_passed.count() << "ms\n";
 
         return temp;
