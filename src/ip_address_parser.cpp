@@ -23,7 +23,7 @@ public:
     IPaddress& operator=(IPaddress&&) = default;
     ~IPaddress() = default;
 
-    std::string get_address() const noexcept { return *this; }
+    std::string get_string() const noexcept { return *this; }
     uint32_t get_byte_view() const noexcept { return *this; }
     uint8_t get_octet0() const noexcept { return octet0; }
     uint8_t get_octet1() const noexcept { return octet1; }
@@ -51,22 +51,28 @@ public:
         return result;
     }
 
+    static bool is_valid_ip(const std::string& addr)
+    {
+        std::regex ip_regex{R"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"};
+        return std::regex_match(addr, ip_regex);
+    }
+
     static IPaddress create_IP(const std::string& addr)
     {
-        std::regex ip_regex{R"(\d+\.\d+\.\d+\.\d+)"};
-        if (!std::regex_match(addr, ip_regex))
+        if (!is_valid_ip(addr))
         {
             std::ostringstream message;
-            message << __FUNCTION__ << "(): bad ip address";
+            message << __FUNCTION__ << "(" << addr << "): bad ip address";
             throw std::invalid_argument{message.str()};
         }
+
         std::array<uint8_t, 4> octs{};
         std::istringstream istr{addr};
         std::string buffer;
-        for (int i{0}; i < 4; ++i)
+        for (int i{3}; i >= 0; --i)
         {
             std::getline(istr, buffer, '.');
-            octs.at(3 - i) = std::stoi(buffer);
+            octs.at(i) = std::stoi(buffer);
         }
         return IPaddress{octs[3], octs[2], octs[1], octs[0]};
     }
@@ -74,7 +80,7 @@ public:
 
 std::ostream& operator<<(std::ostream& stream, const IPaddress& addr) noexcept
 {
-    stream << addr.get_address();
+    stream << addr.get_string();
     return stream;
 }
 
