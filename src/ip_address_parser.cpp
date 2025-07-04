@@ -122,7 +122,7 @@ void describe_IP(const IPaddress& addr)
         std::cout << '\n';
     }
 
-    std::cout << "Full address: ";
+    std::cout << "Full address: (" << addr.get_byte_view() << ") ";
     show_bits(addr.get_byte_view());
     std::cout << '\n';
 }
