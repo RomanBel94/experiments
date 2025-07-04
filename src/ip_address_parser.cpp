@@ -8,73 +8,86 @@
 class IPaddress
 {
 private:
-    uint8_t octet0 = 0;
-    uint8_t octet1 = 0;
-    uint8_t octet2 = 0;
-    uint8_t octet3 = 0;
+    std::array<uint8_t, 4> octets{};
 
 public:
     IPaddress(uint8_t oct3, uint8_t oct2, uint8_t oct1, uint8_t oct0)
-        : octet3{oct3}, octet2{oct2}, octet1{oct1}, octet0{oct0} {};
+    {
+        set_octet(oct0, 0);
+        set_octet(oct1, 1);
+        set_octet(oct2, 2);
+        set_octet(oct3, 3);
+    };
+
+    explicit IPaddress(uint32_t byte_view)
+    {
+        uint8_t current_octet{0};
+        for (size_t i{0}; i < 4; ++i)
+        {
+            current_octet |= byte_view >> i * 8;
+            set_octet(current_octet, i);
+            current_octet = 0;
+        }
+    }
+
     IPaddress() = default;
     IPaddress(const IPaddress&) = default;
     IPaddress(IPaddress&&) noexcept = default;
     IPaddress& operator=(const IPaddress&) = default;
-    IPaddress& operator=(IPaddress&&) = default;
+    IPaddress& operator=(IPaddress&&) noexcept = default;
     ~IPaddress() = default;
 
     std::string get_string() const noexcept { return *this; }
     uint32_t get_byte_view() const noexcept { return *this; }
-    uint8_t get_octet0() const noexcept { return octet0; }
-    uint8_t get_octet1() const noexcept { return octet1; }
-    uint8_t get_octet2() const noexcept { return octet2; }
-    uint8_t get_octet3() const noexcept { return octet3; }
+    uint8_t get_octet(size_t index) const noexcept { return octets.at(index); }
+    void set_octet(uint8_t octet, size_t index) { octets.at(index) = octet; }
 
     operator std::string() const noexcept
     {
         std::ostringstream result;
-        result << static_cast<uint16_t>(get_octet3()) << '.'
-               << static_cast<uint16_t>(get_octet2()) << '.'
-               << static_cast<uint16_t>(get_octet1()) << '.'
-               << static_cast<uint16_t>(get_octet0());
+        result << static_cast<uint16_t>(get_octet(3)) << '.'
+               << static_cast<uint16_t>(get_octet(2)) << '.'
+               << static_cast<uint16_t>(get_octet(1)) << '.'
+               << static_cast<uint16_t>(get_octet(0));
         return result.str();
     }
 
     operator uint32_t() const noexcept
     {
         uint32_t result{0};
-        result |= octet3, result <<= 8;
-        result |= octet2, result <<= 8;
-        result |= octet1, result <<= 8;
-        result |= octet0;
+        result |= get_octet(3), result <<= 8;
+        result |= get_octet(2), result <<= 8;
+        result |= get_octet(1), result <<= 8;
+        result |= get_octet(0);
 
         return result;
     }
 
-    static bool is_valid_ip(const std::string& addr)
+    static void validate_ip(const std::string& addr)
     {
         std::regex ip_regex{R"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"};
-        return std::regex_match(addr, ip_regex);
-    }
 
-    static IPaddress create_IP(const std::string& addr)
-    {
-        if (!is_valid_ip(addr))
+        if (!std::regex_match(addr, ip_regex))
         {
             std::ostringstream message;
             message << __FUNCTION__ << "(" << addr << "): bad ip address";
             throw std::invalid_argument{message.str()};
         }
+    }
 
-        std::array<uint8_t, 4> octs{};
+    static IPaddress create_IP(const std::string& addr)
+    {
+        validate_ip(addr);
+
+        IPaddress result;
         std::istringstream istr{addr};
         std::string buffer;
         for (int i{3}; i >= 0; --i)
         {
             std::getline(istr, buffer, '.');
-            octs.at(i) = std::stoi(buffer);
+            result.set_octet(stoi(buffer), i);
         }
-        return IPaddress{octs[3], octs[2], octs[1], octs[0]};
+        return result;
     }
 };
 
@@ -102,16 +115,16 @@ void describe_IP(const IPaddress& addr)
 {
     std::cout << addr << '\n';
     std::cout << "Octet3: ";
-    show_bits(addr.get_octet3());
+    show_bits(addr.get_octet(3));
     std::cout << '\n';
     std::cout << "Octet2: ";
-    show_bits(addr.get_octet2());
+    show_bits(addr.get_octet(2));
     std::cout << '\n';
     std::cout << "Octet1: ";
-    show_bits(addr.get_octet1());
+    show_bits(addr.get_octet(1));
     std::cout << '\n';
     std::cout << "Octet0: ";
-    show_bits(addr.get_octet0());
+    show_bits(addr.get_octet(0));
     std::cout << '\n';
     std::cout << "Full address: ";
     show_bits(addr.get_byte_view());
@@ -128,7 +141,10 @@ int main(int argc, char* argv[])
         std::cout << "Enter IP address (or type \"exit\"): ";
         std::getline(std::cin, input, '\n');
         if (input == "exit")
+        {
+            std::cout << "Exited by user\n";
             break;
+        }
 
         try
         {
