@@ -5,6 +5,9 @@
 #include <stdexcept>
 #include <string>
 
+constexpr auto VALID_IP_REGEX =
+    R"(((\d|1\d{1,2}|2[0-5]{1,2}|[1-9]\d)\.){3}(1\d{1,2}|2[0-5]{1,2}|[1-9]\d|\d))";
+
 class IPaddress
 {
 private:
@@ -70,8 +73,7 @@ public:
 
     static inline void validate_ip(const std::string& addr)
     {
-        std::regex ip_regex{R"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"};
-
+        std::regex ip_regex{VALID_IP_REGEX};
         if (!std::regex_match(addr, ip_regex))
         {
             std::ostringstream message;
