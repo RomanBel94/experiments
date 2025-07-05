@@ -8,7 +8,7 @@ class Foo
 public:
     Foo(int n) : num(n) {}
 
-    static auto& get_instance(int n = 0)
+    static auto get_instance(int n = 0) -> std::shared_ptr<Foo>
     {
         static auto ptr = std::make_shared<Foo>(n);
         return ptr;
