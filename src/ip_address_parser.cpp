@@ -19,9 +19,8 @@ public:
         func_object(std::forward<Args>(args)...);
         std::chrono::steady_clock::time_point end{
             std::chrono::steady_clock::now()};
-        std::chrono::duration<double> time_passed{
-            std::chrono::duration_cast<std::chrono::duration<double>>(end -
-                                                                      start)};
+        std::chrono::duration<double> time_passed{std::chrono::duration_cast<
+            std::chrono::duration<double, std::milli>>(end - start)};
 
         std::clog << "Time passed: " << std::fixed << std::setprecision(5)
                   << time_passed.count() << "ms\n";
@@ -35,9 +34,8 @@ public:
         ReturnType temp = func_object(std::forward<Args>(args)...);
         std::chrono::steady_clock::time_point end{
             std::chrono::steady_clock::now()};
-        std::chrono::duration<double> time_passed{
-            std::chrono::duration_cast<std::chrono::duration<double>>(end -
-                                                                      start)};
+        std::chrono::duration<double> time_passed{std::chrono::duration_cast<
+            std::chrono::duration<double, std::milli>>(end - start)};
 
         std::clog << "Time passed: " << std::fixed << std::setprecision(5)
                   << time_passed.count() << "ms\n";
