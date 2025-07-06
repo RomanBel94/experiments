@@ -41,10 +41,6 @@ add_executable(countWords ${CMAKE_CURRENT_SOURCE_DIR}/src/countWords.cpp)
 
 add_executable(percentDiff ${CMAKE_CURRENT_SOURCE_DIR}/src/percentDiff.cpp)
 
-add_executable(callingFabricFunctionWithDifferentArguments 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/callingFabricFunctionWithDifferentArguments.cpp
-)
-
 add_executable(numberRenderer ${CMAKE_CURRENT_SOURCE_DIR}/src/numberRenderer.cpp)
 
 add_executable(lambdaInheritance ${CMAKE_CURRENT_SOURCE_DIR}/src/lambdaInheritance.cpp)
