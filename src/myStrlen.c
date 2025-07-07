@@ -14,7 +14,7 @@ int main()
 {
     const char str[] = "Hello World";
     printf("%s\n", str);
-    printf("%ld\n", my_strlen(str));
+    printf("%td\n", my_strlen(str));
 
     return 0;
 }
