@@ -147,12 +147,16 @@ template <typename Integer>
 inline void show_bits(Integer num)
 {
     uint8_t offset{sizeof(Integer) * 8 - 1};
-    for (Integer ptr{static_cast<Integer>(1 << offset)}; ptr; ptr >>= 1)
+    for (Integer mask{static_cast<Integer>(1 << offset)}, counter{1}; mask;
+         mask >>= 1, ++counter)
     {
-        if (num & ptr)
+        if (num & mask)
             std::cout << '1';
         else
             std::cout << '0';
+
+        if (counter % 8 == 0 && mask != 1)
+            std::cout << " |";
         std::cout << ' ';
     }
 }
@@ -161,7 +165,7 @@ inline void show_octets(const IPaddress& addr)
 {
     for (int i{3}; i >= 0; --i)
     {
-        std::cout << "Octet" << i << ": ("
+        std::cout << "Octet" << i << ": (" << std::setw(3) << std::right
                   << static_cast<uint16_t>(addr.get_octet(i)) << ") ";
         show_bits(addr.get_octet(i));
         std::cout << '\n';
