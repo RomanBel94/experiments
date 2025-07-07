@@ -3,10 +3,6 @@
 #include <iomanip>
 #include <iostream>
 #include <regex>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <utility>
 
 class Timer final
 {
