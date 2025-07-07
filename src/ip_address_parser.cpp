@@ -150,10 +150,7 @@ inline void show_bits(Integer num)
     for (Integer mask{static_cast<Integer>(1 << offset)}, counter{1}; mask;
          mask >>= 1, ++counter)
     {
-        if (num & mask)
-            std::cout << '1';
-        else
-            std::cout << '0';
+        std::cout << static_cast<bool>(num & mask);
 
         if (counter % 8 == 0 && mask != 1)
             std::cout << " |";
