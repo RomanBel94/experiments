@@ -38,16 +38,16 @@ class IPaddress final
 {
 private:
     std::array<uint8_t, 4> octets{};
-    static constexpr auto VALID_IP_REGEX =
-        R"(((\d|1\d{1,2}|25[0-5]|2[0-4]\d|[1-9]\d)\.){3}(1\d{1,2}|25[0-5]|2[0-4]\d|[1-9]\d|\d))";
+    static constexpr auto IP_REGEX =
+        R"(((\d|1\d\d|25[0-5]|2[0-4]\d|[1-9]\d)\.){3}(1\d\d|25[0-5]|2[0-4]\d|[1-9]\d|\d))";
 
 public:
     IPaddress(uint8_t oct3, uint8_t oct2, uint8_t oct1, uint8_t oct0)
     {
-        set_octet(oct0, 0);
-        set_octet(oct1, 1);
-        set_octet(oct2, 2);
-        set_octet(oct3, 3);
+        set_octet(0, oct0);
+        set_octet(1, oct1);
+        set_octet(2, oct2);
+        set_octet(3, oct3);
     };
 
     explicit IPaddress(uint32_t byte_view)
@@ -101,7 +101,7 @@ public:
 
     static inline void validate_ip(const std::string& addr)
     {
-        std::regex ip_regex{VALID_IP_REGEX};
+        std::regex ip_regex{IP_REGEX};
         if (!std::regex_match(addr, ip_regex))
         {
             std::ostringstream message;
