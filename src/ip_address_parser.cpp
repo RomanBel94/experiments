@@ -67,20 +67,24 @@ public:
     inline std::string to_string() const noexcept
     {
         std::ostringstream result;
-        result << static_cast<uint16_t>(get_octet(3)) << '.'
-               << static_cast<uint16_t>(get_octet(2)) << '.'
-               << static_cast<uint16_t>(get_octet(1)) << '.'
-               << static_cast<uint16_t>(get_octet(0));
+        for (int i{3}; i >= 0; --i)
+        {
+            result << static_cast<uint16_t>(get_octet(i));
+            if (i > 0)
+                result << '.';
+        }
         return result.str();
     }
 
     inline uint32_t to_uint32() const noexcept
     {
         uint32_t result{0};
-        result |= get_octet(3), result <<= 8;
-        result |= get_octet(2), result <<= 8;
-        result |= get_octet(1), result <<= 8;
-        result |= get_octet(0);
+        for (int i{3}; i >= 0; --i)
+        {
+            result |= get_octet(i);
+            if (i > 0)
+                result <<= 8;
+        }
 
         return result;
     }
@@ -142,6 +146,7 @@ inline void show_bits(Integer num)
     {
         std::cout << static_cast<bool>(num & mask);
 
+        // every 8th bit and not last
         if (counter % 8 == 0 && mask != 1)
             std::cout << " |";
         std::cout << ' ';
