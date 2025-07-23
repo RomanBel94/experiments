@@ -21,6 +21,7 @@ private:
 
     // Print debug information about current configuration.
     inline void _print_current_configuration() const noexcept;
+    inline void _show_color(const std::string& color) const noexcept;
 
     // Common variables.
     static const std::string light_icon;
@@ -28,6 +29,8 @@ private:
     static const std::string color_yellow;
     static const std::string color_red;
     static const std::string color_white;
+
+    static std::unordered_map<std::string, const std::string> colors;
 
     // Configuration hashmap of this trafic light.
     mutable std::unordered_map<std::string, int> m_configuration;
@@ -39,6 +42,12 @@ const std::string TraficLightManager::color_green{"\033[92m"};
 const std::string TraficLightManager::color_yellow{"\033[93m"};
 const std::string TraficLightManager::color_red{"\033[91m"};
 const std::string TraficLightManager::color_white{"\033[0m\n"};
+
+std::unordered_map<std::string, const std::string> TraficLightManager::colors{
+    {"Green", TraficLightManager::color_green},
+    {"YellowToRed", TraficLightManager::color_yellow},
+    {"Red", TraficLightManager::color_red},
+    {"YellowToGreen", TraficLightManager::color_yellow}};
 
 // Reads configuration file and fills self configuration hashmap,
 // if can't read configuration file applies default values.
@@ -63,6 +72,13 @@ TraficLightManager::TraficLightManager() noexcept
 #endif
 }
 
+// Shows current color on screen
+void TraficLightManager::_show_color(const std::string& color) const noexcept
+{
+    std::cout << colors[color] << light_icon << color_white;
+    _sleep(m_configuration[color]);
+}
+
 // Endless loop that prints current light icon with different colors.
 void TraficLightManager::run() const noexcept
 {
@@ -72,17 +88,10 @@ void TraficLightManager::run() const noexcept
         if (counter++ % 5 == 0)
             std::cout << "Press Ctrl+C to stop the traffic light\n";
 
-        std::cout << color_green << light_icon << color_white;
-        _sleep(m_configuration["Green"]);
-
-        std::cout << color_yellow << light_icon << color_white;
-        _sleep(m_configuration["YellowToRed"]);
-
-        std::cout << color_red << light_icon << color_white;
-        _sleep(m_configuration["Red"]);
-
-        std::cout << color_yellow << light_icon << color_white;
-        _sleep(m_configuration["YellowToGreen"]);
+        _show_color("Green");
+        _show_color("YellowToRed");
+        _show_color("Red");
+        _show_color("YellowToGreen");
     }
 }
 
