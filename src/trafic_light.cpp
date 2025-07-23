@@ -58,7 +58,7 @@ TraficLightManager::TraficLightManager() noexcept
             configuration_file >> m_configuration[parameter];
         }
     }
-#ifndef DNDEBUG
+#ifndef NDEBUG
     _print_current_configuration();
 #endif
 }
@@ -86,6 +86,7 @@ void TraficLightManager::run() const noexcept
     }
 }
 
+#ifndef NDEBUG
 // Prints current gonfiguration values.
 void TraficLightManager::_print_current_configuration() const noexcept
 {
@@ -96,6 +97,7 @@ void TraficLightManager::_print_current_configuration() const noexcept
                   << " sec\n";
     }
 }
+#endif
 
 // Stops running this thread for given nuber of seconds.
 void TraficLightManager::_sleep(int seconds) noexcept
