@@ -77,10 +77,8 @@ void TraficLightManager::run() const noexcept
         if (counter++ % 5 == 0)
             std::cout << "[INFO] Press Ctrl+C to stop the traffic light\n";
 
-        _show_color("Green");
-        _show_color("YellowToRed");
-        _show_color("Red");
-        _show_color("YellowToGreen");
+        for (auto& config_element : m_configuration)
+            _show_color(config_element.first);
     }
 }
 
