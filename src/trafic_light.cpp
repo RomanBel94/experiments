@@ -16,8 +16,14 @@ public:
     void run() const noexcept;
 
 private:
+    // Other constructors and assignment operators are deleted.
+    TraficLightManager(const TraficLightManager&) = delete;
+    TraficLightManager(TraficLightManager&&) noexcept = delete;
+    TraficLightManager& operator=(const TraficLightManager&) = delete;
+    TraficLightManager& operator=(TraficLightManager&&) noexcept = delete;
+
     // Delay switching to the next signal.
-    static inline void _sleep(int seconds) noexcept;
+    static inline void _sleep(const int seconds) noexcept;
 
     // Print debug information about current configuration.
     inline void _print_current_configuration() const noexcept;
@@ -56,6 +62,7 @@ TraficLightManager::TraficLightManager() noexcept
     {
         std::clog << "[INFO] Loading";
         std::string parameter;
+
         while (configuration_file >> parameter)
         {
             configuration_file >> m_configuration[parameter];
@@ -77,13 +84,13 @@ void TraficLightManager::run() const noexcept
         if (counter++ % 5 == 0)
             std::cout << "[INFO] Press Ctrl+C to stop the traffic light\n";
 
-        for (auto& config_element : m_configuration)
+        for (const auto& config_element : m_configuration)
             _show_color(config_element.first);
     }
 }
 
 // Stops running this thread for given nuber of seconds.
-void TraficLightManager::_sleep(int seconds) noexcept
+void TraficLightManager::_sleep(const int seconds) noexcept
 {
     std::this_thread::sleep_for(std::chrono::seconds(seconds));
 }
@@ -92,10 +99,10 @@ void TraficLightManager::_sleep(int seconds) noexcept
 void TraficLightManager::_print_current_configuration() const noexcept
 {
     std::cout << "[INFO] Current delay parameters are: \n";
-    for (const std::pair<std::string, int>& parameter : m_configuration)
+    for (const auto& config_element : m_configuration)
     {
-        std::cout << "[INFO] " << parameter.first << ": " << parameter.second
-                  << " sec\n";
+        std::cout << "[INFO] " << config_element.first << ": "
+                  << config_element.second << " sec\n";
     }
 }
 
@@ -103,12 +110,12 @@ void TraficLightManager::_print_current_configuration() const noexcept
 void TraficLightManager::_show_color(const std::string& color) const noexcept
 {
     std::cout << colors.at(color) << light_icon << colors.at("White");
-    _sleep(m_configuration[color]);
+    _sleep(m_configuration.at(color));
 }
 
 int main()
 {
-    TraficLightManager trafic_light;
+    const TraficLightManager trafic_light;
     trafic_light.run();
 
     return 0;
