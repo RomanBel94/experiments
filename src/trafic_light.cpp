@@ -44,20 +44,27 @@ private:
     mutable std::unordered_map<std::string, int> m_configuration;
 };
 
-const std::string TraficLightManager::light_icon{"***\n"};
+std::string operator""_s(char const* const str, size_t size)
+{
+    return std::string(str);
+}
+
+const std::string TraficLightManager::light_icon{"***\n"_s};
 
 const std::unordered_map<std::string, const std::string>
     TraficLightManager::colors{
-        {"Green", "\033[92m"}, {"YellowToRed", "\033[93m"},
-        {"Red", "\033[91m"},   {"YellowToGreen", "\033[93m"},
-        {"White", "\033[0m"},
+        {"Green"_s, "\033[92m"_s}, {"YellowToRed"_s, "\033[93m"_s},
+        {"Red"_s, "\033[91m"_s},   {"YellowToGreen"_s, "\033[93m"_s},
+        {"White"_s, "\033[0m"_s},
     };
 
 // Reads configuration file and fills self configuration hashmap,
 // if can't read configuration file applies default values.
 TraficLightManager::TraficLightManager() noexcept
-    : m_configuration{
-          {"Green", 1}, {"YellowToRed", 1}, {"Red", 1}, {"YellowToGreen", 1}}
+    : m_configuration{{"Green"_s, 1},
+                      {"YellowToRed"_s, 1},
+                      {"Red"_s, 1},
+                      {"YellowToGreen"_s, 1}}
 {
     std::ifstream configuration_file("trafic_light_config.txt");
     if (!configuration_file)
@@ -125,7 +132,7 @@ inline void TraficLightManager::_read_configuration(
 // Shows current color on screen
 void TraficLightManager::_show_color(const std::string& color) const noexcept
 {
-    std::cout << colors.at(color) << light_icon << colors.at("White");
+    std::cout << colors.at(color) << light_icon << colors.at("White"_s);
     _sleep(m_configuration.at(color));
 }
 
