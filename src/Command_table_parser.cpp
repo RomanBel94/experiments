@@ -43,7 +43,39 @@ struct Token
         return string.str();
     }
 
-    const std::wstring value;
+    bool operator==(const std::wstring& rhs) const noexcept
+    {
+        return value == rhs;
+    }
+    bool operator==(const wchar_t* const rhs) const noexcept
+    {
+        return value == rhs;
+    }
+    const Token& operator=(const std::wstring& rhs) noexcept
+    {
+        value = rhs;
+        return *this;
+    }
+    const Token& operator=(const wchar_t* const rhs) noexcept
+    {
+        value = rhs;
+        return *this;
+    }
+    const Token& operator=(const Token& rhs) noexcept
+    {
+        value = rhs.value;
+        return *this;
+    }
+    const Token operator+(const Token& rhs) const noexcept
+    {
+        return Token(value + L' ' + rhs.value, line, pos);
+    }
+    void operator+=(const Token& rhs) const noexcept
+    {
+        value = value + L' ' + rhs.value;
+    }
+
+    mutable std::wstring value;
     const std::size_t line;
     const std::size_t pos;
 };
@@ -76,6 +108,7 @@ private:
     {
         return ch == L'.' && current_pos == 1;
     }
+    void _compress_tokens() noexcept;
 };
 
 void CT_Lexer::extract_tokens(const std::string& filepath)
@@ -101,7 +134,6 @@ void CT_Lexer::extract_tokens(const std::string& filepath)
         if (_is_wnewline(input_file.peek()))
         {
             input_file.get();
-            tokens.emplace_back(L"\n", current_line, current_pos);
             ++current_line;
             current_pos = 1;
             continue;
@@ -129,6 +161,32 @@ void CT_Lexer::extract_tokens(const std::string& filepath)
     }
 
     tokens.emplace_back(L"EOF");
+    _compress_tokens();
+}
+
+void CT_Lexer::_compress_tokens() noexcept
+{
+    for (auto current_token = tokens.begin(); current_token != tokens.end();
+         ++current_token)
+    {
+        if (*current_token == L"COS" || *current_token == L"Main")
+        {
+            auto next_token = current_token;
+            ++next_token;
+            *current_token += *next_token;
+            tokens.erase(next_token);
+        }
+        else if (*current_token == L"End")
+        {
+            auto next_token = current_token;
+            ++next_token;
+            for (std::size_t cnt{1}; cnt < 4; ++cnt)
+            {
+                *current_token += *next_token;
+                tokens.erase(next_token++);
+            }
+        }
+    }
 }
 
 int main()
@@ -136,7 +194,7 @@ int main()
     CT_Lexer lexer;
     try
     {
-        lexer.extract_tokens("Command_table");
+        lexer.extract_tokens("Command_table2");
     }
     catch (const std::exception& ex)
     {
