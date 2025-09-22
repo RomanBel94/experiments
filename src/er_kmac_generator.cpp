@@ -25,19 +25,14 @@ static inline bool _is_valid_hash(const std::string& hash)
     return _is_hash(hash) && hash.size() == HASH_SIZE;
 }
 
-int main(int, char**)
+static inline void _fill_hash(std::string& hash)
 {
-    std::string result{};
-
     for (std::size_t i{0}; i < HASH_SIZE; ++i)
-        result.push_back(digits[distribution(rd)]);
+        hash.push_back(digits[distribution(rd)]);
+}
 
-    if (!_is_valid_hash(result))
-    {
-        std::cerr << "[ERROR] Failed to generate hashkey\n";
-        std::exit(EXIT_FAILURE);
-    }
-
+static inline void _write_hash(const std::string& result)
+{
     std::ofstream output_file{result + ".txt", std::ios::out};
     if (!output_file)
         std::cerr << "[ERROR] Failed to write output file\n";
@@ -46,6 +41,23 @@ int main(int, char**)
                     << "\n";
 
     std::clog << "[SUCCESS] Hash generation completed: " << result << "\n";
+}
+
+int main(int, char**)
+{
+    std::string result{};
+    result.reserve(HASH_SIZE);
+
+    _fill_hash(result);
+
+    if (!_is_valid_hash(result))
+    {
+        std::cerr << "[ERROR] Failed to generate hashkey\n";
+        std::system("pause");
+        std::exit(EXIT_FAILURE);
+    }
+
+    _write_hash(result);
 
     std::system("pause");
 
