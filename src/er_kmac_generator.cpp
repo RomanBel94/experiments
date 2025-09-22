@@ -11,7 +11,7 @@ static std::random_device rd{};
 static const std::mt19937 gen(rd());
 static std::uniform_int_distribution<int> distribution(0, digits.size() - 1);
 
-inline bool _is_hash(const std::string& hash)
+static inline bool _is_hash(const std::string& hash)
 {
     for (auto ch : hash)
         if (!std::isxdigit(ch))
@@ -20,7 +20,7 @@ inline bool _is_hash(const std::string& hash)
     return true;
 }
 
-inline bool _is_valid_hash(const std::string& hash)
+static inline bool _is_valid_hash(const std::string& hash)
 {
     return _is_hash(hash) && hash.size() == HASH_SIZE;
 }
