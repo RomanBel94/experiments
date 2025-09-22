@@ -3,17 +3,22 @@
 #include <iomanip>
 #include <iostream>
 #include <regex>
+#include <sstream>
 
 class Timer final
 {
+    using clock = std::chrono::steady_clock;
+    using time_point = std::chrono::steady_clock::time_point;
+    using duration = std::chrono::duration<double, std::milli>;
+
 public:
     template <class Callable, typename... Args>
     inline void operator()(Callable&& func_object, Args&&... args) const
     {
-        auto start{std::chrono::steady_clock::now()};
+        time_point start{clock::now()};
         func_object(std::forward<Args>(args)...);
-        auto end{std::chrono::steady_clock::now()};
-        std::chrono::duration<double, std::milli> time_passed{end - start};
+        time_point end{clock::now()};
+        duration time_passed{duration_cast<duration>(end - start)};
 
         std::clog << "Time passed: " << std::fixed << std::setprecision(5)
                   << time_passed.count() << "ms\n";
@@ -22,10 +27,10 @@ public:
     template <typename ReturnType, class Callable, typename... Args>
     inline ReturnType operator()(Callable&& func_object, Args&&... args) const
     {
-        auto start{std::chrono::steady_clock::now()};
+        time_point start{clock::now()};
         ReturnType temp = func_object(std::forward<Args>(args)...);
-        auto end{std::chrono::steady_clock::now()};
-        std::chrono::duration<double, std::milli> time_passed{end - start};
+        time_point end{clock::now()};
+        duration time_passed{std::chrono::duration_cast<duration>(end - start)};
 
         std::clog << "Time passed: " << std::fixed << std::setprecision(5)
                   << time_passed.count() << "ms\n";

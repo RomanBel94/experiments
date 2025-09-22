@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(Experiments 
@@ -56,3 +56,10 @@ add_custom_command(TARGET trafic_light
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/trafic_light_config.txt ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(ip_address_parser ${CMAKE_CURRENT_SOURCE_DIR}/src/ip_address_parser.cpp)
+
+add_executable(Command_table_parser ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_table_parser.cpp)
+add_custom_command(TARGET Command_table_parser
+    POST_BUILD
+    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_table ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(er_kmac_generator ${CMAKE_CURRENT_SOURCE_DIR}/src/er_kmac_generator.cpp)
