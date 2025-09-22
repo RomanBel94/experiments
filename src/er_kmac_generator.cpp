@@ -41,9 +41,11 @@ int main(int, char**)
     std::ofstream output_file{result + ".txt", std::ios::out};
     if (!output_file)
         std::cerr << "[ERROR] Failed to write output file\n";
+    else
+        output_file << "[SUCCESS] Hash generation completed: " << result
+                    << "\n";
 
     std::clog << "[SUCCESS] Hash generation completed: " << result << "\n";
-    output_file << "[SUCCESS] Hash generation completed: " << result << "\n";
 
     std::system("pause");
 
