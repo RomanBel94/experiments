@@ -4,7 +4,7 @@
 #include <random>
 #include <string>
 
-static constexpr std::size_t HASH_SIZE{24};
+static constexpr std::size_t HASH_SIZE{48};
 static const std::string digits{"123456789ABCDEF"};
 
 static std::random_device rd{};
