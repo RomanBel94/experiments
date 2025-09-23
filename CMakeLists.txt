@@ -4,6 +4,10 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
+set(REMOVE_COMMAND rm -rf)
+
+
 project(Experiments 
     VERSION 1.0.0
     DESCRIPTION "Repository for excercises and experiments"
@@ -63,3 +67,8 @@ add_custom_command(TARGET Command_table_parser
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_table ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(er_kmac_generator ${CMAKE_CURRENT_SOURCE_DIR}/src/er_kmac_generator.cpp)
+
+add_custom_target(
+    full_clean
+    COMMAND ${REMOVE_COMMAND} ${CMAKE_CURRENT_BINARY_DIR}/*
+)
