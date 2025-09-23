@@ -13,6 +13,7 @@ static std::random_device rd{};
 static const std::mt19937 gen(rd());
 static std::uniform_int_distribution<int> distribution(0, digits.size() - 1);
 
+// Check if all symbols of parameter are hexadecimal digits
 static inline bool _is_hash(const std::string& hash) noexcept
 {
     for (auto ch : hash)
@@ -22,13 +23,19 @@ static inline bool _is_hash(const std::string& hash) noexcept
     return true;
 }
 
-static inline void _fill_hash(std::string& hash) noexcept
+// Clears parameter and fills it with passed amount
+static inline void _fill_hash(std::string& hash,
+                              const std::size_t amount = 0) noexcept
 {
-    for (std::size_t i{0}; i < HASH_SIZE; ++i)
+    hash.clear();
+    hash.reserve(HASH_SIZE);
+
+    for (std::size_t i{0}; i < amount; ++i)
         hash.push_back(digits[distribution(rd)]);
 }
 
-static inline void _write_hash(const std::string& hash) noexcept
+// Writes string into file
+static inline void _write_hash_to_file(const std::string& hash) noexcept
 {
     std::ofstream output_file{hash.substr(0, FILENAME_SIZE) + ".txt",
                               std::ios::out};
@@ -47,9 +54,7 @@ static inline void _write_hash(const std::string& hash) noexcept
 int main(int, char**)
 {
     std::string result{};
-    result.reserve(HASH_SIZE);
-
-    _fill_hash(result);
+    _fill_hash(result, HASH_SIZE);
 
     if (!_is_hash(result) || result.size() != HASH_SIZE)
     {
@@ -57,7 +62,7 @@ int main(int, char**)
         std::exit(EXIT_FAILURE);
     }
 
-    _write_hash(result);
+    _write_hash_to_file(result);
 
     return EXIT_SUCCESS;
 }
