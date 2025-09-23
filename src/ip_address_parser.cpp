@@ -18,7 +18,7 @@ public:
         time_point start{clock::now()};
         func_object(std::forward<Args>(args)...);
         time_point end{clock::now()};
-        duration time_passed{duration_cast<duration>(end - start)};
+        duration time_passed{std::chrono::duration_cast<duration>(end - start)};
 
         std::clog << "Time passed: " << std::fixed << std::setprecision(5)
                   << time_passed.count() << "ms\n";
