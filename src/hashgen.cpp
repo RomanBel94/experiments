@@ -1,8 +1,7 @@
-#include <cstdlib>
-#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <random>
+#include <stdexcept>
 #include <string>
 
 class SimpleHashGenerator
