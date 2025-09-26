@@ -73,8 +73,8 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
-    std::ofstream output_file(res.substr(0, res.size() > 10 ? 10 : res.size()) +
-                                  ".txt",
+    std::size_t filename_size = res.size() > 10 ? 10 : res.size();
+    std::ofstream output_file(res.substr(0, filename_size) + ".txt",
                               std::ios::out);
     if (!output_file)
     {
