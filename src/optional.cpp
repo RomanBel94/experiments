@@ -1,6 +1,5 @@
 #include "optional.hpp"
 #include <cassert>
-#include <iostream>
 #include <string>
 
 int main()
