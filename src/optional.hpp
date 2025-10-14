@@ -1,3 +1,4 @@
+#include <initializer_list>
 #include <iostream>
 #include <utility>
 
@@ -140,8 +141,6 @@ void optional<_T>::emplace(_Args&&... args)
     val = new _T(std::forward<_Args>(args)...);
 }
 
-} // namespace my
-
 template <typename _T>
 struct std::hash<my::optional<_T>>
 {
@@ -165,17 +164,4 @@ bool operator!=(const my::optional<_T>& obj, const my::nullopt_t) noexcept
     DEBUG_MSG
     return obj.has_value();
 }
-
-template <typename _T>
-bool operator==(const my::optional<_T>& obj, const _T&& val) noexcept
-{
-    DEBUG_MSG
-    return obj.value() == val;
-}
-
-template <typename _T>
-bool operator!=(const my::optional<_T>& obj, const _T&& val) noexcept
-{
-    DEBUG_MSG
-    return obj.value() != val;
-}
+} // namespace my

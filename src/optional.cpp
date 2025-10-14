@@ -9,8 +9,12 @@ int main()
         op_string3{"Hello"};
 
     assert(op_int1 == my::nullopt);
-    assert(op_int2 == 42);
+    assert(*op_int2 == 42);
     assert(!op_int3.has_value());
+
+    assert(!op_string1);
+    assert(!op_string2.has_value());
+    assert(op_string3.value() == "Hello");
 
     std::clog << "All asserts passed\n";
     return EXIT_SUCCESS;
