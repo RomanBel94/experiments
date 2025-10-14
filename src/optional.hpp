@@ -58,7 +58,7 @@ public:
 template <typename _T>
 optional<_T>::optional(_T&& val)
 {
-    val = new _T(std::forward<_T>(val));
+    this->val = new _T(std::forward<_T>(val));
 }
 
 template <typename _T>
@@ -133,4 +133,16 @@ template <typename _T>
 bool operator!=(const my::optional<_T>& obj, const my::nullopt_t) noexcept
 {
     return obj.has_value();
+}
+
+template <typename _T>
+bool operator==(const my::optional<_T>& obj, const _T&& val) noexcept
+{
+    return obj.value() == val;
+}
+
+template <typename _T>
+bool operator!=(const my::optional<_T>& obj, const _T&& val) noexcept
+{
+    return obj.value() != val;
 }

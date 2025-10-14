@@ -1,38 +1,18 @@
 #include "optional.hpp"
+#include <cassert>
 #include <iostream>
 #include <string>
 
 int main()
 {
-    try
-    {
-        my::optional<int> obj;
-        my::optional<int> obj2{my::nullopt};
+    my::optional<int> op_int1, op_int2(42), op_int3{my::nullopt};
+    my::optional<std::string> op_string1{my::nullopt}, op_string2,
+        op_string3{"Hello"};
 
-        obj.emplace(42);
-        std::cout << *obj << '\n';
+    assert(op_int1 == my::nullopt);
+    assert(op_int2 == 42);
+    assert(!op_int3.has_value());
 
-        if (obj2)
-            std::cout << *obj2 << '\n';
-
-        std::cout << std::hash<int>::operator()(obj) << '\n';
-        std::cout << std::boolalpha << (obj != my::nullopt) << ' '
-                  << (obj2 == my::nullopt) << '\n';
-
-        my::optional<std::string> opt_string{"Hello"};
-        std::cout << opt_string->size() << '\n';
-
-        obj2 = obj;
-        if (obj2)
-            std::cout << *obj2 << '\n';
-
-        obj2 = 4262547;
-        std::cout << *obj2 << '\n';
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }
-
+    std::clog << "All asserts passed\n";
     return EXIT_SUCCESS;
 }
