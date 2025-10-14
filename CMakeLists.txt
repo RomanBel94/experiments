@@ -72,3 +72,5 @@ add_custom_target(
     full_clean
     COMMAND ${REMOVE_COMMAND} ${CMAKE_CURRENT_BINARY_DIR}/*
 )
+
+add_executable(optional ${CMAKE_CURRENT_SOURCE_DIR}/src/optional.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/optional.hpp)
