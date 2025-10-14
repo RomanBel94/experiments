@@ -1,4 +1,3 @@
-#include <initializer_list>
 #include <iostream>
 #include <utility>
 
@@ -26,14 +25,12 @@ private:
     _T* val;
 
 public:
-    optional(nullopt_t = nullopt) : val{nullptr} { DEBUG_MSG };
+    optional(nullopt_t = nullopt) : val{nullptr} {DEBUG_MSG};
     optional(_T&& val);
     template <typename... _Args>
     optional(_Args&&... args);
     optional(const optional<_T>& other)
-        : val{new _T(std::forward<_T>(other.value()))} {
-              DEBUG_MSG
-          };
+        : val{new _T(std::forward<_T>(other.value()))} {DEBUG_MSG};
     optional(optional<_T>&& other) noexcept { DEBUG_MSG swap(other); };
 
     optional<_T>& operator=(const optional<_T>& other);
@@ -142,16 +139,6 @@ void optional<_T>::emplace(_Args&&... args)
 }
 
 template <typename _T>
-struct std::hash<my::optional<_T>>
-{
-    std::size_t operator()(const my::optional<_T>& obj) noexcept
-    {
-        DEBUG_MSG
-        return std::hash<_T>::operator()(obj.value());
-    }
-};
-
-template <typename _T>
 bool operator==(const my::optional<_T>& obj, const my::nullopt_t) noexcept
 {
     DEBUG_MSG
@@ -165,3 +152,13 @@ bool operator!=(const my::optional<_T>& obj, const my::nullopt_t) noexcept
     return obj.has_value();
 }
 } // namespace my
+
+template <typename _T>
+struct std::hash<my::optional<_T>>
+{
+    std::size_t operator()(const my::optional<_T>& obj) noexcept
+    {
+        DEBUG_MSG
+        return std::hash<_T>::operator()(obj.value());
+    }
+};
