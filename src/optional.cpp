@@ -21,6 +21,13 @@ int main()
 
         my::optional<std::string> opt_string{"Hello"};
         std::cout << opt_string->size() << '\n';
+
+        obj2 = obj;
+        if (obj2)
+            std::cout << *obj2 << '\n';
+
+        obj2 = 4262547;
+        std::cout << *obj2 << '\n';
     }
     catch (const std::exception& e)
     {

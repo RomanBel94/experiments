@@ -87,7 +87,7 @@ template <typename _T>
 inline _T&& optional<_T>::operator=(_T&& value) noexcept
 {
     std::swap(*val, value);
-    return std::move<_T>(*val);
+    return std::move(*val);
 }
 
 template <typename _T>
@@ -119,7 +119,7 @@ struct std::hash<my::optional<_T>>
 {
     std::size_t operator()(const my::optional<_T>& obj) noexcept
     {
-        return std::hash<_T>::operator()(obj);
+        return std::hash<_T>::operator()(obj.value());
     }
 };
 
