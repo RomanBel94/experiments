@@ -17,11 +17,12 @@ public:
     optional(_T&& val);
     template <typename... _Args>
     optional(_Args&&... args);
-    optional(const optional<_T>& other) : val{new _T(std::forward<_T>(val))} {};
-    optional(optional<_T>&& other) { swap(other); };
+    optional(const optional<_T>& other)
+        : val{new _T(std::forward<_T>(other.value()))} {};
+    optional(optional<_T>&& other) noexcept { swap(other); };
 
     optional<_T>& operator=(const optional<_T>& other);
-    optional<_T>&& operator=(optional<_T>&& other);
+    optional<_T>&& operator=(optional<_T>&& other) noexcept;
 
     _T& operator=(const _T& value);
     _T&& operator=(_T&& value) noexcept;
@@ -46,7 +47,7 @@ public:
     _T* operator->() noexcept { return val; }
     const _T* operator->() const noexcept { return val; }
 
-    void reset() noexcept { delete val; }
+    void reset() noexcept;
     void swap(optional& other) & noexcept { std::swap(this->val, other.val); }
     void swap(optional&& other) && noexcept { std::swap(this->val, other.val); }
 
@@ -69,7 +70,7 @@ inline optional<_T>& optional<_T>::operator=(const optional<_T>& other)
 }
 
 template <typename _T>
-inline optional<_T>&& optional<_T>::operator=(optional<_T>&& other)
+inline optional<_T>&& optional<_T>::operator=(optional<_T>&& other) noexcept
 {
     swap(other);
     return std::move(*this);
@@ -87,6 +88,13 @@ inline _T&& optional<_T>::operator=(_T&& value) noexcept
 {
     std::swap(*val, value);
     return std::move<_T>(*val);
+}
+
+template <typename _T>
+inline void optional<_T>::reset() noexcept
+{
+    delete val;
+    val = nullptr;
 }
 
 template <typename _T>

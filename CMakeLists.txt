@@ -74,3 +74,8 @@ add_custom_target(
 )
 
 add_executable(optional ${CMAKE_CURRENT_SOURCE_DIR}/src/optional.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/optional.hpp)
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+    target_compile_options(optional PRIVATE /analyze)
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
+    target_compile_options(optional PRIVATE -fanalyzer)
+endif()
