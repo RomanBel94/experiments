@@ -25,12 +25,14 @@ private:
     _T* val;
 
 public:
-    optional(nullopt_t = nullopt) : val{nullptr} {DEBUG_MSG};
+    optional(nullopt_t = nullopt) : val{nullptr} { DEBUG_MSG };
     optional(_T&& val);
     template <typename... _Args>
     optional(_Args&&... args);
     optional(const optional<_T>& other)
-        : val{new _T(std::forward<_T>(other.value()))} {DEBUG_MSG};
+        : val{new _T(std::forward<_T>(other.value()))} {
+              DEBUG_MSG
+          };
     optional(optional<_T>&& other) noexcept { DEBUG_MSG swap(other); };
 
     optional<_T>& operator=(const optional<_T>& other);
@@ -147,6 +149,20 @@ bool operator==(const my::optional<_T>& obj, const my::nullopt_t) noexcept
 
 template <typename _T>
 bool operator!=(const my::optional<_T>& obj, const my::nullopt_t) noexcept
+{
+    DEBUG_MSG
+    return obj.has_value();
+}
+
+template <typename _T>
+bool operator==(const my::nullopt_t, const my::optional<_T>& obj) noexcept
+{
+    DEBUG_MSG
+    return !obj.has_value();
+}
+
+template <typename _T>
+bool operator!=(const my::nullopt_t, const my::optional<_T>& obj) noexcept
 {
     DEBUG_MSG
     return obj.has_value();
