@@ -186,6 +186,10 @@ void CT_Lexer::_compress_tokens() noexcept
                 tokens.erase(next_token++);
             }
         }
+        else if (*current_token == L"")
+        {
+            tokens.erase(current_token++);
+        }
     }
 }
 
@@ -194,7 +198,7 @@ int main()
     CT_Lexer lexer;
     try
     {
-        lexer.extract_tokens("Command_table2");
+        lexer.extract_tokens("Command_table");
     }
     catch (const std::exception& ex)
     {
