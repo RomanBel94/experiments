@@ -1,6 +1,7 @@
 #include <chrono>
 #include <cstddef>
 #include <iostream>
+#include <ratio>
 
 class blink_timer final
 {
@@ -11,16 +12,16 @@ private:
     blink_timer& operator=(const blink_timer&) = delete;
     blink_timer&& operator=(blink_timer&&) noexcept = delete;
 
-    std::chrono::duration<double> _positive_phase{};
-    std::chrono::duration<double> _negative_phase{};
-    std::chrono::duration<double> _full_cycle{};
+    std::chrono::duration<std::size_t, std::milli> _positive_phase{};
+    std::chrono::duration<std::size_t, std::milli> _negative_phase{};
+    std::chrono::duration<std::size_t, std::milli> _full_cycle{};
 
     bool _is_active{false};
 
     std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 
 public:
-    blink_timer(double positive_phase, double negative_phase)
+    blink_timer(std::size_t positive_phase, std::size_t negative_phase)
         : _positive_phase(positive_phase), _negative_phase(negative_phase),
           _full_cycle(_positive_phase + _negative_phase)
     {
@@ -42,7 +43,7 @@ public:
 
 int main()
 {
-    blink_timer timer(1, .5);
+    blink_timer timer(500, 500);
 
     while (true)
     {
