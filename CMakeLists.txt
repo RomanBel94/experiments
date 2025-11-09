@@ -68,6 +68,8 @@ add_custom_command(TARGET Command_table_parser
 
 add_executable(hashgen ${CMAKE_CURRENT_SOURCE_DIR}/src/hashgen.cpp)
 
+add_executable(er_kmac_generator ${CMAKE_CURRENT_SOURCE_DIR}/src/er_kmac_generator.cpp)
+
 add_custom_target(
     full_clean
     COMMAND ${REMOVE_COMMAND} ${CMAKE_CURRENT_BINARY_DIR}/*
@@ -79,3 +81,5 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
     target_compile_options(optional PRIVATE -fanalyzer)
 endif()
+
+add_executable(blink_timer ${CMAKE_CURRENT_SOURCE_DIR}/src/blink_timer.cpp)
