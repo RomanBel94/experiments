@@ -24,7 +24,7 @@ public:
     blink_timer() = default;
     ~blink_timer() noexcept = default;
 
-    bool current_phase() noexcept
+    bool current_phase() const noexcept
     {
         auto current_time = std::chrono::high_resolution_clock::now();
         auto time_passed = current_time - start_time;
@@ -37,7 +37,7 @@ public:
 
 int main()
 {
-    blink_timer<500, 500> timer;
+    blink_timer<1000, 500> timer;
 
     std::boolalpha(std::cout);
     while (true)
