@@ -1,5 +1,5 @@
 #include <chrono>
-#include <cmath>
+#include <cstddef>
 #include <iostream>
 
 class blink_timer final
@@ -11,44 +11,41 @@ private:
     blink_timer& operator=(const blink_timer&) = delete;
     blink_timer&& operator=(blink_timer&&) noexcept = delete;
 
-    std::chrono::duration<double> active_phase{};
-    std::chrono::duration<double> not_active_phase{};
-    std::chrono::duration<double> full_cycle{};
+    std::chrono::duration<double> _positive_phase{};
+    std::chrono::duration<double> _negative_phase{};
+    std::chrono::duration<double> _full_cycle{};
 
-    bool is_active{false};
+    bool _is_active{false};
 
     std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 
 public:
-    blink_timer(double not_active_phase, double active_phase)
-        : active_phase(active_phase), not_active_phase(not_active_phase),
-          full_cycle(active_phase + not_active_phase)
+    blink_timer(double positive_phase, double negative_phase)
+        : _positive_phase(positive_phase), _negative_phase(negative_phase),
+          _full_cycle(_positive_phase + _negative_phase)
     {
         start_time = std::chrono::high_resolution_clock::now();
     }
 
     ~blink_timer() noexcept = default;
 
-    bool is_active_phase() const noexcept
+    bool current_phase() noexcept
     {
         auto current_time = std::chrono::high_resolution_clock::now();
         auto time_passed = current_time - start_time;
-        auto num_cycles = std::floor(time_passed / full_cycle);
+        std::size_t num_cycles = time_passed / _full_cycle;
 
-        return ((time_passed - num_cycles * full_cycle) < active_phase);
+        return ((time_passed - num_cycles * _full_cycle) < _positive_phase);
+        ;
     }
 };
 
 int main()
 {
-    blink_timer timer(.5, .5);
+    blink_timer timer(1, .5);
+
     while (true)
     {
-        if (timer.is_active_phase())
-        {
-            std::cout << "active\n";
-            continue;
-        }
-        std::cout << "not active\n";
+        std::cout << std::boolalpha << timer.current_phase() << '\n';
     }
 }
