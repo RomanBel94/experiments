@@ -18,11 +18,10 @@ private:
         neg_phase};
 
     const std::chrono::time_point<std::chrono::high_resolution_clock>
-        start_time{};
+        start_time{std::chrono::high_resolution_clock::now()};
 
 public:
-    blink_timer() : start_time(std::chrono::high_resolution_clock::now()) {}
-
+    blink_timer() = default;
     ~blink_timer() noexcept = default;
 
     bool current_phase() noexcept
