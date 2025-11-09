@@ -1,5 +1,3 @@
-#include <cstdlib>
-#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <random>
@@ -12,16 +10,6 @@ static const std::string digits{"123456789ABCDEF"};
 static std::random_device rd{};
 static const std::mt19937 gen(rd());
 static std::uniform_int_distribution<int> distribution(0, digits.size() - 1);
-
-// Check if all symbols of parameter are hexadecimal digits
-static inline bool _is_hash(const std::string& hash) noexcept
-{
-    for (auto ch : hash)
-        if (!std::isxdigit(ch))
-            return false;
-
-    return true;
-}
 
 // Clears parameter and fills it with passed amount
 static inline void _fill_hash(std::string& hash,
@@ -54,14 +42,8 @@ static inline void _write_hash_to_file(const std::string& hash) noexcept
 int main(int, char**)
 {
     std::string result{};
+
     _fill_hash(result, HASH_SIZE);
-
-    if (!_is_hash(result) || result.size() != HASH_SIZE)
-    {
-        std::cerr << "Failed to generate\n";
-        std::exit(EXIT_FAILURE);
-    }
-
     _write_hash_to_file(result);
 
     return EXIT_SUCCESS;
