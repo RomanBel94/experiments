@@ -39,7 +39,7 @@ int main()
 {
     blink_timer<500, 500> timer;
 
-    std::cout << std::boolalpha;
+    std::boolalpha(std::cout);
     while (true)
         std::cout << timer.current_phase() << '\n';
 }
