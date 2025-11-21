@@ -83,3 +83,5 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
 endif()
 
 add_executable(blink_timer ${CMAKE_CURRENT_SOURCE_DIR}/src/blink_timer.cpp)
+
+add_executable(morze_coder ${CMAKE_CURRENT_SOURCE_DIR}/src/morze_coder.cpp)
