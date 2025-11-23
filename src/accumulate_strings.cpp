@@ -8,12 +8,21 @@
 int main()
 {
     std::array<std::string, 3> strings{"Hello ", "World", "!"};
-
     std::string result =
         std::accumulate(strings.cbegin(), strings.cend(), std::string(),
                         std::plus<std::string>());
 
     std::cout << result << std::endl;
+
+    std::array<std::string, 5> strings2{"Hello", "world", "one", "two",
+                                        "three"};
+    std::string result2 =
+        std::accumulate(strings2.cbegin(), strings2.cend(), std::string(),
+                        [](const std::string& lhs, const std::string& rhs)
+                        { return lhs + " " + rhs; });
+    result2.erase(result2.begin());
+
+    std::cout << result2 << std::endl;
 
     return EXIT_SUCCESS;
 }
