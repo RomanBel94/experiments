@@ -74,6 +74,7 @@ public:
         std::ostringstream result;
         for (int i{3}; i >= 0; --i)
         {
+            // cast is used for correct output for digits
             result << static_cast<uint16_t>(get_octet(i));
             if (i > 0)
                 result << '.';
