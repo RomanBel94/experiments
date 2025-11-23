@@ -19,8 +19,7 @@ int main()
     std::string result2 =
         std::accumulate(strings2.cbegin(), strings2.cend(), std::string(),
                         [](const std::string& lhs, const std::string& rhs)
-                        { return lhs + " " + rhs; });
-    result2.erase(result2.begin());
+                        { return lhs + rhs + " "; });
 
     std::cout << result2 << std::endl;
 
