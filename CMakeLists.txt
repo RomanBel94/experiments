@@ -85,3 +85,5 @@ endif()
 add_executable(blink_timer ${CMAKE_CURRENT_SOURCE_DIR}/src/blink_timer.cpp)
 
 add_executable(morze_coder ${CMAKE_CURRENT_SOURCE_DIR}/src/morze_coder.cpp)
+
+add_executable(accumulate_strings ${CMAKE_CURRENT_SOURCE_DIR}/src/accumulate_strings.cpp)
