@@ -1,4 +1,4 @@
-ï»¿#include <fstream>
+#include <fstream>
 #include <iostream>
 #include <random>
 #include <string>
@@ -16,7 +16,7 @@ private:
 
     static std::random_device rd;
     static const std::mt19937 gen;
-    static std::uniform_int_distribution<std::size_t> distribution;
+    static std::uniform_int_distribution<int> distribution;
 
     static void _fill_hash(std::wstring& hash,
                            const std::size_t amount) noexcept;
@@ -38,7 +38,7 @@ const std::wstring SimpleHashGenerator::digits{L"123456789ABCDEF"};
 
 std::random_device SimpleHashGenerator::rd{};
 const std::mt19937 SimpleHashGenerator::gen(rd());
-std::uniform_int_distribution<std::size_t>
+std::uniform_int_distribution<int>
     SimpleHashGenerator::distribution(0, digits.size() - 1);
 
 // Clears parameter and fills it with passed amount
@@ -52,7 +52,7 @@ void SimpleHashGenerator::_fill_hash(std::wstring& hash,
         hash.push_back(digits[distribution(rd)]);
 }
 
-int wmain(int argc, wchar_t** argv)
+static int wmain(int argc, wchar_t** argv)
 {
 #ifdef _WIN32
     std::setlocale(LC_ALL, "ru_RU.UTF-8");
@@ -60,12 +60,12 @@ int wmain(int argc, wchar_t** argv)
 
     if (argc != 2)
     {
-        std::wcout << L"Ð˜ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ð½Ð¸Ðµ: hashgen <Ñ€Ð°Ð·Ð¼ÐµÑ€ Ñ…ÐµÑˆÐ°>\n";
+        std::wcout << L"Èñïîëüçîâàíèå: hashgen <ðàçìåð õåøà>\n";
         std::exit(EXIT_FAILURE);
     }
     if (std::stoi(argv[1]) <= 0)
     {
-        std::wcerr << L"Ð Ð°Ð·Ð¼ÐµÑ€ Ñ…ÐµÑˆÐ° Ð´Ð¾Ð»Ð¶ÐµÐ½ Ð±Ñ‹Ñ‚ÑŒ Ð±Ð¾Ð»ÑŒÑˆÐµ 0\n";
+        std::wcerr << L"Ðàçìåð õåøà äîëæåí áûòü áîëüøå 0\n";
         std::exit(EXIT_FAILURE);
     }
 
@@ -79,11 +79,11 @@ int wmain(int argc, wchar_t** argv)
                                std::ios::out);
     if (!output_file)
     {
-        std::wcerr << L"ÐÐµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð·Ð°Ð¿Ð¸ÑÐ°Ñ‚ÑŒ Ñ„Ð°Ð¹Ð»\n";
+        std::wcerr << L"Íå óäàëîñü çàïèñàòü ôàéë\n";
         std::exit(EXIT_FAILURE);
     }
     output_file << hash;
-    std::wcout << L"Ð“Ð¾Ñ‚Ð¾Ð²Ð¾\n";
+    std::wcout << L"Ãîòîâî\n";
 
     return EXIT_SUCCESS;
 }
