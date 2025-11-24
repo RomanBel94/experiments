@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(REMOVE_COMMAND rm -rf)
 
+if(WIN32)
+    add_compile_options(/utf-8)
+endif()
+
 
 project(Experiments 
     VERSION 1.0.0
