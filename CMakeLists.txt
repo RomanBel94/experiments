@@ -69,6 +69,7 @@ add_executable(Command_table_parser ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_tabl
 add_custom_command(TARGET Command_table_parser
     POST_BUILD
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_table ${CMAKE_CURRENT_BINARY_DIR})
+target_compile_options(Command_table_parser PRIVATE "/utf-8" "/std:c++20")
 
 add_executable(hashgen ${CMAKE_CURRENT_SOURCE_DIR}/src/hashgen.cpp)
 

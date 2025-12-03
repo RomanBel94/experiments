@@ -1,4 +1,5 @@
 #include <cwctype>
+#include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -10,7 +11,7 @@
 
 class CommandTable final
 {
-    using header_t = std::list<std::pair<const std::string, const std::string>>;
+    using header_t = std::unordered_map<const std::string, const std::string>;
 
 public:
     CommandTable() = default;
@@ -35,12 +36,8 @@ struct Token
 
     std::wstring to_wstring() const noexcept
     {
-        std::wostringstream string;
-        string << L"Value: " << std::setw(35) << std::left
-               << (value == L"\n" ? L"\\n" : value) << L" line: "
-               << std::setw(8) << std::left << line << L" pos: " << std::setw(8)
-               << std::left << pos;
-        return string.str();
+        return std::format(L"Value: {: <35}line: {:<10}pos: {:<10}",
+                           (value == L"\n" ? L"\\n" : value), line, pos);
     }
 
     bool operator==(const std::wstring& rhs) const noexcept
@@ -156,11 +153,12 @@ void CT_Lexer::extract_tokens(const std::string& filepath)
             }
         }
 
-        tokens.emplace_back(std::move(temp), current_line, current_pos);
+        tokens.emplace_back(temp, current_line, current_pos);
         temp.clear();
     }
 
-    tokens.emplace_back(L"EOF");
+    tokens.emplace_back(L"EOF"); // this token is neccessary for compressing and
+                                 // cleanings, DO NOT DELETE!
     _compress_tokens();
 }
 
@@ -190,7 +188,15 @@ void CT_Lexer::_compress_tokens() noexcept
         {
             tokens.erase(current_token++);
         }
+        else if (*current_token == L"Checksum_A:")
+        {
+            while (*current_token != L"EOF")
+            {
+                tokens.erase(current_token++);
+            }
+        }
     }
+    tokens.pop_back();
 }
 
 int main()
@@ -205,8 +211,10 @@ int main()
         std::cerr << ex.what();
         return EXIT_FAILURE;
     }
+
+    std::wofstream ct_out("Command_table_output");
     for (const auto& token : lexer.get_tokens())
-        std::wcout << token.to_wstring() << L'\n';
+        ct_out << token.to_wstring() << L'\n';
 
     return EXIT_SUCCESS;
 }
