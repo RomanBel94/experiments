@@ -35,8 +35,8 @@ std::string morze_coder::encode(const std::string& str)
 {
     std::string result{};
 
-    std::for_each(
-        str.cbegin(), str.cend(),
+    std::ranges::for_each(
+        str,
         [&result](const auto ch) {
             result += morze_coder::translation_table.at(std::tolower(ch)) + ' ';
         });
@@ -46,6 +46,12 @@ std::string morze_coder::encode(const std::string& str)
 
 int main(int argc, char* argv[])
 {
-    std::cout << morze_coder::encode("Hello world") << std::endl;
+    if (argc != 2)
+    {
+        std::cout << "Usage: morze_coder <message>\n";
+        return EXIT_FAILURE;
+    }
+
+    std::cout << morze_coder::encode(argv[1]) << std::endl;
     return EXIT_SUCCESS;
 }
