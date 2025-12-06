@@ -1,4 +1,6 @@
-﻿#include <fstream>
+﻿#include <filesystem>
+#include <format>
+#include <fstream>
 #include <iostream>
 #include <random>
 #include <string>
@@ -52,7 +54,7 @@ void SimpleHashGenerator::_fill_hash(std::wstring& hash,
         hash.push_back(digits[distribution(rd)]);
 }
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 #ifdef _WIN32
     std::setlocale(LC_ALL, "ru_RU.UTF-8");
@@ -74,9 +76,11 @@ int wmain(int argc, wchar_t** argv)
 
     hash = gen.get_hash(std::stoi(argv[1]));
 
-    std::size_t filename_size = hash.size() >= 10 ? 10 : hash.size();
-    std::wofstream output_file(hash.substr(0, filename_size) + L".txt",
-                               std::ios::out);
+    std::size_t filename_size = hash.size() > 10 ? 10 : hash.size();
+    std::filesystem::path filemane =
+        std::format(L"{}.txt", hash.substr(0, filename_size));
+
+    std::wofstream output_file(filemane, std::ios::out);
     if (!output_file)
     {
         std::wcerr << L"Не удалось записать файл\n";
