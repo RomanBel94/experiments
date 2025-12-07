@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -25,16 +26,16 @@ private:
     TraficLightManager& operator=(TraficLightManager&&) noexcept = delete;
 
     // Delay switching to the next signal.
-    static inline void _sleep(const int seconds) noexcept;
+    static void _sleep(const int seconds) noexcept;
 
     // Print debug information about current configuration.
-    inline void _print_current_configuration() const noexcept;
+    void _print_current_configuration() const noexcept;
 
     // Reads config file and fills configuration map.
-    inline void _read_configuration(std::ifstream& config_file) const noexcept;
+    void _read_configuration(std::ifstream& config_file) const noexcept;
 
     // Print current color.
-    inline void _show_color(const std::string& color) const noexcept;
+    void _show_color(const std::string& color) const noexcept;
 
     // Common variables.
     static const std::string light_icon;
@@ -103,17 +104,18 @@ void TraficLightManager::_print_current_configuration() const noexcept
 {
     std::cout << "[INFO] Current delay parameters are: \n";
 
-    std::for_each(
-        m_configuration.begin(), m_configuration.end(),
+    std::ranges::for_each(
+        m_configuration,
         [this](const std::pair<const std::string, int>& config_element)
         {
-            std::cout << "[INFO] " << config_element.first << ": "
-                      << config_element.second << " sec\n";
+            std::cout << std::format("[INFO] {:<15} : {}sec\n",
+                                     config_element.first,
+                                     config_element.second);
         });
 }
 
 // Reads config file and fills configuration map.
-inline void TraficLightManager::_read_configuration(
+void TraficLightManager::_read_configuration(
     std::ifstream& config_file) const noexcept
 {
     std::clog << "[INFO] Loading";
