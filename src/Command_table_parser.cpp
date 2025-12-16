@@ -31,33 +31,6 @@ struct Token
     {
         return value == rhs;
     }
-    bool operator==(const wchar_t* const rhs) const noexcept
-    {
-        return value == rhs;
-    }
-    const Token& operator=(const std::wstring& rhs) noexcept
-    {
-        value = rhs;
-        return *this;
-    }
-    const Token& operator=(const wchar_t* const rhs) noexcept
-    {
-        value = rhs;
-        return *this;
-    }
-    const Token& operator=(const Token& rhs) noexcept
-    {
-        value = rhs.value;
-        return *this;
-    }
-    const Token operator+(const Token& rhs) const noexcept
-    {
-        return Token(value + L' ' + rhs.value, line, pos);
-    }
-    void operator+=(const Token& rhs) const noexcept
-    {
-        value = value + L' ' + rhs.value;
-    }
 
     mutable std::wstring value;
     const std::size_t line;
@@ -75,8 +48,8 @@ public:
 private:
     struct LexerContext
     {
-        std::size_t current_line;
-        std::size_t current_pos;
+        std::size_t current_line{1};
+        std::size_t current_pos{1};
 
         std::wifstream input_file;
 
@@ -85,9 +58,6 @@ private:
             input_file.open(filepath);
             if (!input_file)
                 throw std::runtime_error("[FATAL] Can't open input file!");
-
-            current_line = 1;
-            current_pos = 1;
         }
 
         wchar_t peek() { return input_file.peek(); }
@@ -112,10 +82,7 @@ private:
     }
     bool _is_wquot(const wchar_t ch) const noexcept { return ch == L'\"'; }
     bool _is_wnewline(const wchar_t ch) const noexcept { return ch == L'\n'; }
-    bool _is_comment(const wchar_t ch) const noexcept
-    {
-        return ch == L'.' && context.current_pos == 1;
-    }
+    bool _is_comment(const wchar_t ch) const noexcept { return ch == L'.'; }
 };
 
 void CT_Lexer::extract_tokens(const std::filesystem::path& filepath)
@@ -175,7 +142,7 @@ class CommandTable final
 public:
     CommandTable(const std::filesystem::path& input);
 
-    void fill();
+    void parse();
 
 private:
     std::filesystem::path m_command_table_path;
@@ -191,7 +158,7 @@ private:
 CommandTable::CommandTable(const std::filesystem::path& input)
     : m_command_table_path(input), m_header() {};
 
-void CommandTable::fill() { m_lexer.extract_tokens(m_command_table_path); }
+void CommandTable::parse() { m_lexer.extract_tokens(m_command_table_path); }
 
 int main()
 {
@@ -202,13 +169,13 @@ int main()
     CT_Lexer lexer;
     try
     {
-        auto start = std::chrono::high_resolution_clock::now();
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
 
         std::clog << "Start extracting tokens\n";
         lexer.extract_tokens(command_table_input_filename);
 
-        std::chrono::duration<double> time_passed =
-            std::chrono::high_resolution_clock::now() - start;
+        duration<double> time_passed = high_resolution_clock::now() - start;
 
         std::clog << std::format("Tokens extracted. Time passed {:.5f}s\n",
                                  time_passed.count());
@@ -220,9 +187,18 @@ int main()
     }
 
     std::clog << "Start writing tokens\n";
-    std::wofstream ct_out(command_table_output_filename);
-    for (const auto& token : lexer.get_tokens())
+
+    for (std::wofstream ct_out(command_table_output_filename);
+         const auto& token : lexer.get_tokens())
+    {
         ct_out << token.to_wstring() << L'\n';
+    }
+
+    constexpr std::string_view crc_command =
+        "X:\\eqv\\gen\\CRC\\CRC-3.2.2\\CRC\\distribution\\bin\\WinXP\\crc.exe "
+        "{:s}";
+    std::system(std::format(crc_command, command_table_output_filename.string())
+                    .c_str());
 
     return EXIT_SUCCESS;
 }
