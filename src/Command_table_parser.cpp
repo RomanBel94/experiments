@@ -1,26 +1,13 @@
 #include <cwctype>
+#include <filesystem>
 #include <format>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
 #include <list>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
-
-class CommandTable final
-{
-    using header_t = std::unordered_map<const std::string, const std::string>;
-
-public:
-    CommandTable() = default;
-
-    header_t& get_header() { return header; }
-
-private:
-    header_t header{};
-};
 
 struct Token
 {
@@ -80,14 +67,38 @@ struct Token
 class CT_Lexer
 {
 public:
-    void extract_tokens(const std::string& filepath);
+    void extract_tokens(const std::filesystem::path& filepath);
     void clear() { tokens.clear(); }
 
     const std::list<Token>& get_tokens() const noexcept { return tokens; }
 
 private:
-    std::size_t current_line{1};
-    std::size_t current_pos{1};
+    struct LexerContext
+    {
+        std::size_t current_line;
+        std::size_t current_pos;
+
+        std::wifstream input_file;
+
+        void open_file(const std::filesystem::path& filepath)
+        {
+            input_file.open(filepath);
+            if (!input_file)
+                throw std::runtime_error("[FATAL] Can't open input file!");
+
+            current_line = 1;
+            current_pos = 1;
+        }
+
+        wchar_t peek() { return input_file.peek(); }
+        wchar_t get()
+        {
+            ++current_pos;
+            return input_file.get();
+        }
+        bool eof() const noexcept { return input_file.eof(); }
+
+    } context;
 
     std::list<Token> tokens;
 
@@ -103,108 +114,104 @@ private:
     bool _is_wnewline(const wchar_t ch) const noexcept { return ch == L'\n'; }
     bool _is_comment(const wchar_t ch) const noexcept
     {
-        return ch == L'.' && current_pos == 1;
+        return ch == L'.' && context.current_pos == 1;
     }
-    void _compress_tokens() noexcept;
 };
 
-void CT_Lexer::extract_tokens(const std::string& filepath)
+void CT_Lexer::extract_tokens(const std::filesystem::path& filepath)
 {
-    std::wifstream input_file{filepath};
-    if (!input_file)
-        throw std::runtime_error{"[FATAL] Can't open input file: " + filepath};
-
+    context.open_file(filepath);
     std::wstring temp;
 
-    while (!input_file.eof())
+    while (!context.eof())
     {
-        while (_is_wspace(input_file.peek()))
+        while (_is_wspace(context.peek())) // skip spaces
         {
-            input_file.get();
-            ++current_pos;
+            context.get();
         }
-        if (_is_comment(input_file.peek()))
+        if (_is_comment(context.peek())) // skip comments
         {
-            while (!_is_wnewline(input_file.peek()))
-                input_file.get();
+            while (!_is_wnewline(context.peek()))
+                context.get();
         }
-        if (_is_wnewline(input_file.peek()))
+        if (_is_wnewline(context.peek())) // found new line
         {
-            input_file.get();
-            ++current_line;
-            current_pos = 1;
+            context.get();
+            ++context.current_line;
+            context.current_pos = 1;
             continue;
         }
-        else if (_is_wquot(input_file.peek()))
+        else if (_is_wquot(context.peek())) // read quoted text
         {
-            temp += static_cast<wchar_t>(input_file.get());
-            while (!_is_wquot(input_file.peek()))
+            temp += context.get();
+            while (!_is_wquot(context.peek()))
             {
-                temp += static_cast<wchar_t>(input_file.get());
+                temp += context.get();
             }
-            temp += static_cast<wchar_t>(input_file.get());
+            temp += context.get();
         }
-        else if (_is_wtext(input_file.peek()))
+        else if (_is_wtext(context.peek())) // read word
         {
-            while (_is_wtext(input_file.peek()))
+            while (_is_wtext(context.peek()))
             {
-                temp += static_cast<wchar_t>(input_file.get());
-                ++current_pos;
+                temp += context.get();
+                ++context.current_pos;
             }
         }
 
-        tokens.emplace_back(temp, current_line, current_pos);
+        tokens.emplace_back(temp, context.current_line, context.current_pos);
         temp.clear();
     }
 
-    tokens.emplace_back(L"EOF"); // this token is neccessary for compressing and
-                                 // cleanings, DO NOT DELETE!
-    _compress_tokens();
+    // remove checksums
+    tokens.erase(std::find(tokens.cbegin(), tokens.cend(), L"Checksum_A:"),
+                 tokens.end());
 }
 
-void CT_Lexer::_compress_tokens() noexcept
+class CommandTable final
 {
-    for (auto current_token = tokens.begin(); current_token != tokens.end();
-         ++current_token)
-    {
-        if (*current_token == L"COS" || *current_token == L"Main")
-        {
-            auto next_token = current_token;
-            ++next_token;
-            *current_token += *next_token;
-            tokens.erase(next_token);
-        }
-        else if (*current_token == L"End")
-        {
-            auto next_token = current_token;
-            ++next_token;
-            for (std::size_t cnt{1}; cnt < 4; ++cnt)
-            {
-                *current_token += *next_token;
-                tokens.erase(next_token++);
-            }
-        }
-        else if (*current_token == L"")
-        {
-            tokens.erase(current_token++);
-        }
-        else if (*current_token == L"Checksum_A:")
-        {
-            while (*current_token != L"EOF")
-            {
-                tokens.erase(current_token++);
-            }
-        }
-    }
-    tokens.pop_back();
-}
+    using header_t = std::unordered_map<std::string, std::string>;
+
+public:
+    CommandTable(const std::filesystem::path& input);
+
+    void fill();
+
+private:
+    std::filesystem::path m_command_table_path;
+
+    CT_Lexer m_lexer;
+
+    header_t m_header{};
+    // cos_interface_t m_cos_interface
+    // components_t m_component
+    // commands_t m_commands
+};
+
+CommandTable::CommandTable(const std::filesystem::path& input)
+    : m_command_table_path(input), m_header() {};
+
+void CommandTable::fill() { m_lexer.extract_tokens(m_command_table_path); }
 
 int main()
 {
+    std::filesystem::path command_table_input_filename = "Command_table";
+    std::filesystem::path command_table_output_filename =
+        "Command_table_output";
+
     CT_Lexer lexer;
     try
     {
-        lexer.extract_tokens("Command_table");
+        auto start = std::chrono::high_resolution_clock::now();
+
+        std::clog << "Start extracting tokens\n";
+        lexer.extract_tokens(command_table_input_filename);
+
+        std::chrono::duration<double> time_passed =
+            std::chrono::high_resolution_clock::now() - start;
+
+        std::clog << std::format("Tokens extracted. Time passed {:.5f}s\n",
+                                 time_passed.count());
     }
     catch (const std::exception& ex)
     {
@@ -212,7 +219,8 @@ int main()
         return EXIT_FAILURE;
     }
 
-    std::wofstream ct_out("Command_table_output");
+    std::clog << "Start writing tokens\n";
+    std::wofstream ct_out(command_table_output_filename);
     for (const auto& token : lexer.get_tokens())
         ct_out << token.to_wstring() << L'\n';
 
