@@ -40,7 +40,7 @@ struct Token
 class CT_Lexer
 {
 public:
-    void extract_tokens(const std::filesystem::path& filepath);
+    void get_tokens(const std::filesystem::path& filepath);
     void clear() { tokens.clear(); }
 
     const std::list<Token>& get_tokens() const noexcept { return tokens; }
@@ -85,7 +85,7 @@ private:
     bool _is_comment(const wchar_t ch) const noexcept { return ch == L'.'; }
 };
 
-void CT_Lexer::extract_tokens(const std::filesystem::path& filepath)
+void CT_Lexer::get_tokens(const std::filesystem::path& filepath)
 {
     context.open_file(filepath);
     std::wstring temp;
@@ -135,12 +135,12 @@ void CT_Lexer::extract_tokens(const std::filesystem::path& filepath)
                  tokens.end());
 }
 
-class CommandTable final
+class CommandTableParser final
 {
     using header_t = std::unordered_map<std::string, std::string>;
 
 public:
-    CommandTable(const std::filesystem::path& input);
+    CommandTableParser(const std::filesystem::path& input);
 
     void parse();
 
@@ -155,10 +155,10 @@ private:
     // commands_t m_commands
 };
 
-CommandTable::CommandTable(const std::filesystem::path& input)
+CommandTableParser::CommandTableParser(const std::filesystem::path& input)
     : m_command_table_path(input), m_header() {};
 
-void CommandTable::parse() { m_lexer.extract_tokens(m_command_table_path); }
+void CommandTableParser::parse() { m_lexer.get_tokens(m_command_table_path); }
 
 int main()
 {
@@ -173,7 +173,7 @@ int main()
         auto start = high_resolution_clock::now();
 
         std::clog << "Start extracting tokens\n";
-        lexer.extract_tokens(command_table_input_filename);
+        lexer.get_tokens(command_table_input_filename);
 
         duration<double> time_passed = high_resolution_clock::now() - start;
 
