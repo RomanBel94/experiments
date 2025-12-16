@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cwctype>
 #include <filesystem>
 #include <format>
@@ -61,6 +62,8 @@ private:
             if (!input_file)
                 throw std::runtime_error("[FATAL] Can't open input file!");
         }
+
+        void close_file() { input_file.close(); }
 
         char peek() { return input_file.peek(); }
         char get()
@@ -132,6 +135,7 @@ void CommandTableLexer::extract_tokens(const std::filesystem::path& filepath)
                               m_context.current_pos);
         temp.clear();
     }
+    m_context.close_file();
 
     // remove checksums
     m_tokens.erase(std::find(m_tokens.cbegin(), m_tokens.cend(), "Checksum_A:"),
@@ -161,7 +165,7 @@ private:
 };
 
 CommandTableParser::CommandTableParser(const std::filesystem::path& input)
-    : m_command_table_path(input), m_header() {};
+    : m_command_table_path(input), m_header(){};
 
 void CommandTableParser::parse()
 {

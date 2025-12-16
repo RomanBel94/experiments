@@ -7,16 +7,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(REMOVE_COMMAND rm -rf)
 
-if(WIN32)
-    add_compile_options(/utf-8)
-endif()
-
 
 project(Experiments 
     VERSION 1.0.0
     DESCRIPTION "Repository for excercises and experiments"
     LANGUAGES C CXX
 )
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+    add_compile_options(/utf-8)
+endif()
 
 add_executable(myStrlen ${CMAKE_CURRENT_SOURCE_DIR}/src/myStrlen.c)
 
@@ -68,8 +68,8 @@ add_executable(ip_address_parser ${CMAKE_CURRENT_SOURCE_DIR}/src/ip_address_pars
 add_executable(Command_table_parser ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_table_parser.cpp)
 add_custom_command(TARGET Command_table_parser
     POST_BUILD
-    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_table ${CMAKE_CURRENT_BINARY_DIR})
-target_compile_options(Command_table_parser PRIVATE "/utf-8" "/std:c++20")
+    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_table ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 add_executable(hashgen ${CMAKE_CURRENT_SOURCE_DIR}/src/hashgen.cpp)
 
