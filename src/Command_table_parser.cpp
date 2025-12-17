@@ -121,6 +121,13 @@ private:
     {
         return !_is_space(ch) && std::isprint(ch);
     }
+    void _skip_spaces()
+    {
+        while (_is_space(m_lexer_context.peek())) // skip spaces
+        {
+            m_lexer_context.get();
+        }
+    }
 };
 
 void CommandTableLexer::extract_tokens(const std::filesystem::path& filepath)
@@ -129,11 +136,7 @@ void CommandTableLexer::extract_tokens(const std::filesystem::path& filepath)
 
     while (!m_lexer_context.eof())
     {
-        while (_is_space(m_lexer_context.peek())) // skip spaces
-        {
-            m_lexer_context.get();
-        }
-
+        _skip_spaces();
         if (m_lexer_context.peek() == '.') // skip comments
         {
             m_lexer_context.process_comment();
@@ -220,7 +223,7 @@ int main()
 
     std::ofstream output_file{command_table_output_filename};
     for (const auto& token : lexer.get_tokens())
-        output_file << std::format("Token: {:<35} line: {:<8} pos: {:<3};\n",
+        output_file << std::format("Token: {:<35} line: {:<8} pos: {}\n",
                                    token.value, token.line, token.pos);
     // DEBUG
 
