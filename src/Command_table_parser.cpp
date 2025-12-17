@@ -3,6 +3,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <list>
 #include <stdexcept>
 #include <string>
@@ -211,6 +212,24 @@ int main()
 {
     fs::path command_table_input = "Command_table";
     fs::path command_table_output = "Command_table_output";
+    fs::path command_table_output_backup = "Command_table_output.bak";
+
+    std::ifstream backup_input{command_table_input};
+    std::ofstream backup_output{command_table_output_backup};
+
+    char ch{};
+    while (true)
+    {
+        if (backup_input.eof())
+            break;
+
+        ch = backup_input.get();
+
+        if (std::isprint(ch) || std::iscntrl(ch))
+            backup_output.put(ch);
+    }
+    backup_input.close();
+    backup_output.close();
 
     CommandTableParser command_table(command_table_input);
     command_table.parse();
