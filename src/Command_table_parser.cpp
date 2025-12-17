@@ -224,9 +224,7 @@ int main()
             break;
 
         ch = backup_input.get();
-
-        if (std::isprint(ch) || std::iscntrl(ch))
-            backup_output.put(ch);
+        backup_output.put(ch);
     }
     backup_input.close();
     backup_output.close();
