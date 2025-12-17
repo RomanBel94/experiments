@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <cwctype>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -8,7 +7,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <unordered_map>
 
 struct Token
 {
@@ -24,7 +22,7 @@ struct Token
 
     std::string to_string() const noexcept
     {
-        return std::format("Value: {: <35}line: {:<10}pos: {:<10}",
+        return std::format("Value: {:<35}line: {:<10}pos: {:<10}",
                            (value == "\n" ? "\\n" : value), line, pos);
     }
 
@@ -73,69 +71,88 @@ private:
         }
         bool eof() const noexcept { return input_file.eof(); }
 
-    } m_context;
+        void process_comment() // skip comments
+        {
+            while (peek() != '\n')
+                get();
+        }
+
+        void process_newline()
+        {
+            get();
+            ++current_line;
+            current_pos = 1;
+        }
+
+        Token process_quoted_text()
+        {
+            std::string temp;
+
+            temp += get();
+            while (peek() != '\"')
+                temp += get();
+            temp += get();
+
+            return Token(temp, current_line, current_pos);
+        }
+
+        Token process_text()
+        {
+            std::string temp;
+
+            while (!std::isspace(peek()) && std::isprint(peek()))
+            {
+                temp += get();
+                ++current_pos;
+            }
+
+            return Token(temp, current_line, current_pos);
+        }
+
+    } m_lexer_context;
 
     std::list<Token> m_tokens;
 
     bool _is_space(const char ch) const noexcept
     {
-        return std::isspace(ch) && !_is_newline(ch);
+        return std::isspace(ch) && ch != '\n';
     }
     bool _is_text(const char ch) const noexcept
     {
-        return !_is_space(ch) && !_is_newline(ch) && std::isprint(ch);
+        return !_is_space(ch) && std::isprint(ch);
     }
-    bool _is_quot(const char ch) const noexcept { return ch == '\"'; }
-    bool _is_newline(const char ch) const noexcept { return ch == '\n'; }
-    bool _is_comment(const char ch) const noexcept { return ch == '.'; }
 };
 
 void CommandTableLexer::extract_tokens(const std::filesystem::path& filepath)
 {
-    m_context.open_file(filepath);
-    std::string temp;
+    m_lexer_context.open_file(filepath);
 
-    while (!m_context.eof())
+    while (!m_lexer_context.eof())
     {
-        while (_is_space(m_context.peek())) // skip spaces
+        while (_is_space(m_lexer_context.peek())) // skip spaces
         {
-            m_context.get();
-        }
-        if (_is_comment(m_context.peek())) // skip comments
-        {
-            while (!_is_newline(m_context.peek()))
-                m_context.get();
-        }
-        if (_is_newline(m_context.peek())) // found new line
-        {
-            m_context.get();
-            ++m_context.current_line;
-            m_context.current_pos = 1;
-            continue;
-        }
-        else if (_is_quot(m_context.peek())) // read quoted text
-        {
-            temp += m_context.get();
-            while (!_is_quot(m_context.peek()))
-            {
-                temp += m_context.get();
-            }
-            temp += m_context.get();
-        }
-        else if (_is_text(m_context.peek())) // read word
-        {
-            while (_is_text(m_context.peek()))
-            {
-                temp += m_context.get();
-                ++m_context.current_pos;
-            }
+            m_lexer_context.get();
         }
 
-        m_tokens.emplace_back(temp, m_context.current_line,
-                              m_context.current_pos);
-        temp.clear();
+        if (m_lexer_context.peek() == '.') // skip comments
+        {
+            m_lexer_context.process_comment();
+        }
+        else if (m_lexer_context.peek() == '\n') // found new line
+        {
+            m_lexer_context.process_newline();
+        }
+        else if (m_lexer_context.peek() == '\"') // read quoted text
+        {
+            m_tokens.push_back(m_lexer_context.process_quoted_text());
+        }
+        else if (_is_text(m_lexer_context.peek())) // read word
+        {
+            m_tokens.push_back(m_lexer_context.process_text());
+        }
     }
-    m_context.close_file();
+
+    m_lexer_context.close_file();
 
     // remove checksums
     m_tokens.erase(std::find(m_tokens.cbegin(), m_tokens.cend(), "Checksum_A:"),
@@ -144,7 +161,7 @@ void CommandTableLexer::extract_tokens(const std::filesystem::path& filepath)
 
 class CommandTableParser final
 {
-    using header_t = std::list<std::pair<std::string, std::string>>;
+    using header_t = std::list<std::pair<const std::string, const std::string>>;
 
 public:
     CommandTableParser(const std::filesystem::path& input);
@@ -165,7 +182,7 @@ private:
 };
 
 CommandTableParser::CommandTableParser(const std::filesystem::path& input)
-    : m_command_table_path(input), m_header(){};
+    : m_command_table_path(input), m_header() {};
 
 void CommandTableParser::parse()
 {
@@ -179,7 +196,9 @@ void CommandTableParser::parse()
     while (*current_token != "COS")
     {
         auto& key = *current_token;
-        auto& value = *(++current_token);
+        ++current_token;
+        auto& value = *current_token;
+
         m_header.emplace_back(key.value, value.value);
 
         ++current_token;
@@ -195,9 +214,19 @@ int main()
     CommandTableParser command_table(command_table_input_filename);
     command_table.parse();
 
+    // DEBUG
+    CommandTableLexer lexer;
+    lexer.extract_tokens(command_table_input_filename);
+
+    std::ofstream output_file{command_table_output_filename};
+    for (const auto& token : lexer.get_tokens())
+        output_file << std::format("Token: {:<35} line: {:<8} pos: {:<3};\n",
+                                   token.value, token.line, token.pos);
+    // DEBUG
+
     for (const auto& [key, value] : command_table.get_header())
     {
-        std::clog << std::format("{:<45}{}\n", key, value);
+        std::clog << std::format("{:<40}{}\n", key, value);
     }
 
     return EXIT_SUCCESS;
