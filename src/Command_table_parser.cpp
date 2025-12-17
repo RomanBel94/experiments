@@ -4,9 +4,10 @@
 #include <fstream>
 #include <iostream>
 #include <list>
-#include <sstream>
 #include <stdexcept>
 #include <string>
+
+namespace fs = std::filesystem;
 
 struct Token
 {
@@ -22,11 +23,11 @@ struct Token
 
     std::string to_string() const noexcept
     {
-        return std::format("Value: {:<35}line: {:<10}pos: {:<10}",
+        return std::format("Value: {:<35}line: {:<10}pos: {}",
                            (value == "\n" ? "\\n" : value), line, pos);
     }
 
-    auto operator<=>(const Token&) const = default;
+    // auto operator<=>(const Token&) const = default;
 
     bool operator==(const std::string& rhs) const noexcept
     {
@@ -41,7 +42,7 @@ struct Token
 class CommandTableLexer
 {
 public:
-    void extract_tokens(const std::filesystem::path& filepath);
+    void extract_tokens(const fs::path& filepath);
     void clear() { m_tokens.clear(); }
 
     const std::list<Token>& get_tokens() const noexcept { return m_tokens; }
@@ -54,17 +55,16 @@ private:
 
         std::ifstream input_file;
 
-        void open_file(const std::filesystem::path& filepath)
+        void open_file(const fs::path& filepath)
         {
             input_file.open(filepath);
             if (!input_file)
                 throw std::runtime_error("[FATAL] Can't open input file!");
         }
+        void close_file() noexcept { input_file.close(); }
 
-        void close_file() { input_file.close(); }
-
-        char peek() { return input_file.peek(); }
-        char get()
+        char peek() noexcept { return input_file.peek(); }
+        char get() noexcept
         {
             ++current_pos;
             return input_file.get();
@@ -77,14 +77,14 @@ private:
                 get();
         }
 
-        void process_newline()
+        void process_newline() noexcept
         {
             get();
             ++current_line;
             current_pos = 1;
         }
 
-        Token process_quoted_text()
+        Token process_quoted_text() noexcept
         {
             std::string temp;
 
@@ -96,11 +96,11 @@ private:
             return Token(temp, current_line, current_pos);
         }
 
-        Token process_text()
+        Token process_text() noexcept
         {
             std::string temp;
 
-            while (!std::isspace(peek()) && std::isprint(peek()))
+            while (!std::isspace(peek()))
             {
                 temp += get();
                 ++current_pos;
@@ -124,13 +124,11 @@ private:
     void _skip_spaces()
     {
         while (_is_space(m_lexer_context.peek())) // skip spaces
-        {
             m_lexer_context.get();
-        }
     }
 };
 
-void CommandTableLexer::extract_tokens(const std::filesystem::path& filepath)
+void CommandTableLexer::extract_tokens(const fs::path& filepath)
 {
     m_lexer_context.open_file(filepath);
 
@@ -158,8 +156,9 @@ void CommandTableLexer::extract_tokens(const std::filesystem::path& filepath)
     m_lexer_context.close_file();
 
     // remove checksums
-    m_tokens.erase(std::find(m_tokens.cbegin(), m_tokens.cend(), "Checksum_A:"),
-                   m_tokens.end());
+    const auto& checksum =
+        std::find(m_tokens.cbegin(), m_tokens.cend(), "Checksum_A:");
+    m_tokens.erase(checksum, m_tokens.end());
 }
 
 class CommandTableParser final
@@ -167,14 +166,14 @@ class CommandTableParser final
     using header_t = std::list<std::pair<const std::string, const std::string>>;
 
 public:
-    CommandTableParser(const std::filesystem::path& input);
+    CommandTableParser(const fs::path& input);
 
     void parse();
 
     const header_t& get_header() const noexcept { return m_header; }
 
 private:
-    std::filesystem::path m_command_table_path;
+    fs::path m_command_table_path;
 
     CommandTableLexer m_lexer;
 
@@ -184,7 +183,7 @@ private:
     // commands_t m_commands
 };
 
-CommandTableParser::CommandTableParser(const std::filesystem::path& input)
+CommandTableParser::CommandTableParser(const fs::path& input)
     : m_command_table_path(input), m_header() {};
 
 void CommandTableParser::parse()
@@ -210,21 +209,19 @@ void CommandTableParser::parse()
 
 int main()
 {
-    std::filesystem::path command_table_input_filename = "Command_table";
-    std::filesystem::path command_table_output_filename =
-        "Command_table_output";
+    fs::path command_table_input = "Command_table";
+    fs::path command_table_output = "Command_table_output";
 
-    CommandTableParser command_table(command_table_input_filename);
+    CommandTableParser command_table(command_table_input);
     command_table.parse();
 
     // DEBUG
     CommandTableLexer lexer;
-    lexer.extract_tokens(command_table_input_filename);
+    lexer.extract_tokens(command_table_input);
 
-    std::ofstream output_file{command_table_output_filename};
+    std::ofstream output_file{command_table_output};
     for (const auto& token : lexer.get_tokens())
-        output_file << std::format("Token: {:<35} line: {:<8} pos: {}\n",
-                                   token.value, token.line, token.pos);
+        output_file << std::format("{}\n", token.to_string());
     // DEBUG
 
     for (const auto& [key, value] : command_table.get_header())
