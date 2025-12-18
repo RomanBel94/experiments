@@ -24,8 +24,9 @@ struct Token
 
     std::string to_string() const noexcept
     {
-        return std::format("Value: {:<35}line: {:<10}pos: {}",
-                           (value == "\n" ? "\\n" : value), line, pos);
+        return std::format(
+            "Value: {:<35}line: {:<10}pos: {}",
+            ((value == "\x1\n" || value == "\n") ? "\\n" : value), line, pos);
     }
 
     // auto operator<=>(const Token&) const = default;
@@ -78,11 +79,12 @@ private:
                 get();
         }
 
-        void process_newline() noexcept
+        Token process_newline() noexcept
         {
-            get();
+            Token result(get(), current_line, current_pos);
             ++current_line;
             current_pos = 1;
+            return result;
         }
 
         Token process_quoted_text() noexcept
@@ -127,10 +129,31 @@ private:
         while (_is_space(m_lexer_context.peek())) // skip spaces
             m_lexer_context.get();
     }
+    void _make_backup(const fs::path& filepath) const;
 };
+
+void CommandTableLexer::_make_backup(const fs::path& filepath) const
+{
+    std::ifstream input(filepath);
+    std::ofstream output(std::format("{}.bak", filepath.string()));
+
+    char ch{};
+
+    while (true)
+    {
+        ch = input.get();
+
+        if (input.eof())
+            break;
+
+        output.put(ch);
+    }
+}
 
 void CommandTableLexer::extract_tokens(const fs::path& filepath)
 {
+    _make_backup(filepath);
+
     m_lexer_context.open_file(filepath);
 
     while (!m_lexer_context.eof())
@@ -142,7 +165,7 @@ void CommandTableLexer::extract_tokens(const fs::path& filepath)
         }
         else if (m_lexer_context.peek() == '\n') // found new line
         {
-            m_lexer_context.process_newline();
+            m_tokens.push_back(m_lexer_context.process_newline());
         }
         else if (m_lexer_context.peek() == '\"') // read quoted text
         {
@@ -189,48 +212,19 @@ CommandTableParser::CommandTableParser(const fs::path& input)
 
 void CommandTableParser::parse()
 {
+
     m_lexer.extract_tokens(m_command_table_path);
 
     if (m_lexer.get_tokens().empty())
         throw std::runtime_error("[FATAL] Tokens list is empty!");
 
     auto current_token = m_lexer.get_tokens().cbegin();
-
-    while (*current_token != "COS")
-    {
-        auto& key = *current_token;
-        ++current_token;
-        auto& value = *current_token;
-
-        m_header.emplace_back(key.value, value.value);
-
-        ++current_token;
-    }
 }
 
 int main()
 {
     fs::path command_table_input = "Command_table";
     fs::path command_table_output = "Command_table_output";
-    fs::path command_table_output_backup = "Command_table_output.bak";
-
-    std::ifstream backup_input{command_table_input};
-    std::ofstream backup_output{command_table_output_backup};
-
-    char ch{};
-    while (true)
-    {
-        if (backup_input.eof())
-            break;
-
-        ch = backup_input.get();
-        backup_output.put(ch);
-    }
-    backup_input.close();
-    backup_output.close();
-
-    CommandTableParser command_table(command_table_input);
-    command_table.parse();
 
     // DEBUG
     CommandTableLexer lexer;
@@ -238,13 +232,8 @@ int main()
 
     std::ofstream output_file{command_table_output};
     for (const auto& token : lexer.get_tokens())
-        output_file << std::format("{}\n", token.to_string());
+        output_file << token.to_string() << '\n';
     // DEBUG
-
-    for (const auto& [key, value] : command_table.get_header())
-    {
-        std::clog << std::format("{:<40}{}\n", key, value);
-    }
 
     return EXIT_SUCCESS;
 }
