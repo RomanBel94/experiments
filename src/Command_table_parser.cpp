@@ -135,6 +135,7 @@ private:
 void CommandTableLexer::_make_backup(const fs::path& filepath) const
 {
     auto filepath_copy = std::format("{}.bak", filepath.string());
+    fs::remove(filepath_copy);
     fs::copy(filepath, filepath_copy);
 }
 
