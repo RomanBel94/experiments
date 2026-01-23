@@ -134,20 +134,8 @@ private:
 
 void CommandTableLexer::_make_backup(const fs::path& filepath) const
 {
-    std::ifstream input(filepath);
-    std::ofstream output(std::format("{}.bak", filepath.string()));
-
-    char ch{};
-
-    while (true)
-    {
-        ch = input.get();
-
-        if (input.eof())
-            break;
-
-        output.put(ch);
-    }
+    auto filepath_copy = std::format("{}.bak", filepath.string());
+    fs::copy(filepath, filepath_copy);
 }
 
 void CommandTableLexer::extract_tokens(const fs::path& filepath)
@@ -208,7 +196,7 @@ private:
 };
 
 CommandTableParser::CommandTableParser(const fs::path& input)
-    : m_command_table_path(input), m_header() {};
+    : m_command_table_path(input), m_header(){};
 
 void CommandTableParser::parse()
 {
