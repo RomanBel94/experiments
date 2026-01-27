@@ -1,10 +1,10 @@
 #include <algorithm>
+#include <deque>
 #include <filesystem>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <list>
 #include <stdexcept>
 #include <string>
 
@@ -36,9 +36,9 @@ struct Token
         return value == rhs;
     }
 
-    const std::string value;
-    const std::size_t line;
-    const std::size_t pos;
+    std::string value;
+    std::size_t line;
+    std::size_t pos;
 };
 
 class CommandTableLexer
@@ -47,7 +47,7 @@ public:
     void extract_tokens(const fs::path& filepath);
     void clear() { m_tokens.clear(); }
 
-    const std::list<Token>& get_tokens() const noexcept { return m_tokens; }
+    const std::deque<Token>& get_tokens() const noexcept { return m_tokens; }
 
 private:
     struct LexerContext
@@ -114,7 +114,7 @@ private:
 
     } m_lexer_context;
 
-    std::list<Token> m_tokens;
+    std::deque<Token> m_tokens;
 
     bool _is_space(const char ch) const noexcept
     {
@@ -176,7 +176,8 @@ void CommandTableLexer::extract_tokens(const fs::path& filepath)
 
 class CommandTableParser final
 {
-    using header_t = std::list<std::pair<const std::string, const std::string>>;
+    using header_t =
+        std::deque<std::pair<const std::string, const std::string>>;
 
 public:
     CommandTableParser(const fs::path& input);
@@ -197,7 +198,7 @@ private:
 };
 
 CommandTableParser::CommandTableParser(const fs::path& input)
-    : m_command_table_path(input), m_header(){};
+    : m_command_table_path(input), m_header() {};
 
 void CommandTableParser::parse()
 {
