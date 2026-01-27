@@ -7,12 +7,15 @@
 #include <iterator>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 namespace fs = std::filesystem;
 
-struct Token
+class Token
 {
-    Token(const std::string& value, std::size_t line = 1, std::size_t pos = 1)
+public:
+    Token(const std::string_view value, std::size_t line = 1,
+          std::size_t pos = 1)
         : value{value}, line{line}, pos{pos - value.size()}
     {
     }
@@ -29,13 +32,14 @@ struct Token
             ((value == "\x1\n" || value == "\n") ? "\\n" : value), line, pos);
     }
 
-    // auto operator<=>(const Token&) const = default;
+    auto operator<=>(const Token&) const = default;
 
-    bool operator==(const std::string& rhs) const noexcept
+    bool operator==(const std::string_view rhs) const noexcept
     {
         return value == rhs;
     }
 
+private:
     std::string value;
     std::size_t line;
     std::size_t pos;
@@ -218,12 +222,20 @@ int main()
 
     // DEBUG
     CommandTableLexer lexer;
+    std::clog << std::format("Start parsing {}\n",
+                             command_table_input.string());
     lexer.extract_tokens(command_table_input);
+    std::clog << std::format("Finished parsing {}\n",
+                             command_table_input.string());
 
+    // DEBUG
+    std::clog << std::format("Start writing {}\n",
+                             command_table_output.string());
     std::ofstream output_file{command_table_output};
     for (const auto& token : lexer.get_tokens())
         output_file << token.to_string() << '\n';
-    // DEBUG
+    std::clog << std::format("Finished writing {}\n",
+                             command_table_output.string());
 
     return EXIT_SUCCESS;
 }
