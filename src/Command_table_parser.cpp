@@ -4,7 +4,6 @@
 #include <format>
 #include <fstream>
 #include <iostream>
-#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -202,7 +201,7 @@ private:
 };
 
 CommandTableParser::CommandTableParser(const fs::path& input)
-    : m_command_table_path(input), m_header() {};
+    : m_command_table_path(input), m_header(){};
 
 void CommandTableParser::parse()
 {
