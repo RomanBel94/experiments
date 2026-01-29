@@ -10,25 +10,38 @@
 
 namespace fs = std::filesystem;
 
+enum class TokenType : unsigned char
+{
+    TOKEN_UNDEF,
+    TOKEN_STRING,
+    TOKEN_SOLO_DIVIDER,
+    TOKEN_DOUBLE_DIVIDER,
+    TOKEN_NEWLINE,
+    TOKEN_OPERATOR,
+    NUM_TOKENS
+};
+
 class Token
 {
 public:
     Token(const std::string_view value, std::size_t line = 1,
-          std::size_t pos = 1)
-        : value{value}, line{line}, pos{pos - value.size()}
+          std::size_t pos = 1, TokenType type = TokenType::TOKEN_UNDEF)
+        : value{value}, line{line}, pos{pos - value.size()}, type{type}
     {
     }
 
-    Token(char ch, std::size_t line = 1, std::size_t pos = 1)
-        : value{1, ch}, line{line}, pos{pos - 1}
+    Token(char ch, std::size_t line = 1, std::size_t pos = 1,
+          TokenType type = TokenType::TOKEN_UNDEF)
+        : value{1, ch}, line{line}, pos{pos - 1}, type{type}
     {
     }
 
     std::string to_string() const noexcept
     {
         return std::format(
-            "Value: {:<35}line: {:<10}pos: {}",
-            ((value == "\x1\n" || value == "\n") ? "\\n" : value), line, pos);
+            "Value: {:<35}line: {:<10}pos: {:<10} type: {}",
+            ((value == "\x1\n" || value == "\n") ? "\\n" : value), line, pos,
+            _get_type_string());
     }
 
     auto operator<=>(const Token&) const = default;
@@ -42,6 +55,35 @@ private:
     std::string value;
     std::size_t line;
     std::size_t pos;
+    TokenType type;
+
+    std::string _get_type_string() const
+    {
+        std::string ret;
+
+        switch (type)
+        {
+        case TokenType::TOKEN_UNDEF:
+            ret = "TOKEN_UNDEF";
+            break;
+        case TokenType::TOKEN_STRING:
+            ret = "TOKEN_STRING";
+            break;
+        case TokenType::TOKEN_SOLO_DIVIDER:
+            ret = "TOKEN_SOLO_DIVIDER";
+            break;
+        case TokenType::TOKEN_DOUBLE_DIVIDER:
+            ret = "TOKEN_DOUBLE_DIVIDER";
+            break;
+        case TokenType::TOKEN_NEWLINE:
+            ret = "TOKEN_NEWLINE";
+            break;
+        case TokenType::TOKEN_OPERATOR:
+            ret = "TOKEN_OPERATOR";
+            break;
+        }
+        return ret;
+    }
 };
 
 class CommandTableLexer
@@ -76,7 +118,7 @@ private:
         }
         bool eof() const noexcept { return input_file.eof(); }
 
-        void process_comment() // skip comments
+        void skip_comment() // skip comments
         {
             while (peek() != '\n')
                 get();
@@ -84,7 +126,8 @@ private:
 
         Token process_newline() noexcept
         {
-            Token result(get(), current_line, current_pos);
+            Token result(get(), current_line, current_pos,
+                         TokenType::TOKEN_NEWLINE);
             ++current_line;
             current_pos = 1;
             return result;
@@ -99,20 +142,28 @@ private:
                 temp += get();
             temp += get();
 
-            return Token(temp, current_line, current_pos);
+            return Token(temp, current_line, current_pos,
+                         TokenType::TOKEN_STRING);
         }
 
         Token process_text() noexcept
         {
             std::string temp;
+            TokenType type{TokenType::TOKEN_STRING};
 
             while (!std::isspace(peek()))
             {
                 temp += get();
                 ++current_pos;
             }
+            if (temp == "|")
+                type = TokenType::TOKEN_SOLO_DIVIDER;
+            else if (temp == "||")
+                type = TokenType::TOKEN_DOUBLE_DIVIDER;
+            else if (temp == "=")
+                type = TokenType::TOKEN_OPERATOR;
 
-            return Token(temp, current_line, current_pos);
+            return Token(temp, current_line, current_pos, type);
         }
 
     } m_lexer_context;
@@ -153,7 +204,7 @@ void CommandTableLexer::extract_tokens(const fs::path& filepath)
         _skip_spaces();
         if (m_lexer_context.peek() == '.') // skip comments
         {
-            m_lexer_context.process_comment();
+            m_lexer_context.skip_comment();
         }
         else if (m_lexer_context.peek() == '\n') // found new line
         {
@@ -201,7 +252,7 @@ private:
 };
 
 CommandTableParser::CommandTableParser(const fs::path& input)
-    : m_command_table_path(input), m_header(){};
+    : m_command_table_path(input), m_header() {};
 
 void CommandTableParser::parse()
 {
@@ -224,8 +275,6 @@ int main()
     std::clog << std::format("Start parsing {}\n",
                              command_table_input.string());
     lexer.extract_tokens(command_table_input);
-    std::clog << std::format("Finished parsing {}\n",
-                             command_table_input.string());
 
     // DEBUG
     std::clog << std::format("Start writing {}\n",
@@ -233,8 +282,6 @@ int main()
     std::ofstream output_file{command_table_output};
     for (const auto& token : lexer.get_tokens())
         output_file << token.to_string() << '\n';
-    std::clog << std::format("Finished writing {}\n",
-                             command_table_output.string());
 
     return EXIT_SUCCESS;
 }
