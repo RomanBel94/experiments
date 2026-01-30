@@ -57,9 +57,9 @@ private:
     std::size_t pos;
     TokenType type;
 
-    std::string _get_type_string() const
+    std::string_view _get_type_string() const
     {
-        std::string ret;
+        std::string_view ret;
 
         switch (type)
         {
@@ -122,6 +122,7 @@ private:
         {
             while (peek() != '\n')
                 get();
+            get();
         }
 
         Token process_newline() noexcept
