@@ -4,7 +4,6 @@
 #include <iostream>
 #include <map>
 #include <sstream>
-#include <string>
 
 constexpr size_t VERTICAL_SPACE = 1;
 constexpr size_t HORIZONTAL_SPACE = 1;
@@ -15,9 +14,15 @@ constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
                                 HORIZONTAL_SPACE * DIGIT_NUMBER +
                                 HORIZONTAL_SPACE;
 
-// definitions of digits to draw
-// clang-format off
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> zero{
+using digit_t = std::array<std::array<char, DIGIT_WIDTH>, DIGIT_HEIGHT>;
+using digit_buffer_t =
+    std::array<std::array<char, BUFFER_WIDTH>, BUFFER_HEIGHT>;
+
+struct char_digits
+{
+    // definitions of digits to draw
+    // clang-format off
+digit_t zero{
     "  ###  ",
     " #   # ",
     "#     #",
@@ -29,7 +34,7 @@ std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> zero{
     "  ###  "
 };
 
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> one{
+digit_t one{
     "   #   ",
     "  ##   ",
     " # #   ",
@@ -41,7 +46,7 @@ std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> one{
     " ##### "
 };
 
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> two{
+digit_t two{
     "  ###  ",
     " #   # ",
     "#     #",
@@ -53,7 +58,7 @@ std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> two{
     "#######"
 };
 
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> three{
+digit_t three{
     " ####  ",
     "#    # ",
     "#     #",
@@ -65,7 +70,7 @@ std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> three{
     " ####  "
 };
 
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> four{
+digit_t four{
     "     # ",
     "    ## ",
     "   # # ",
@@ -77,19 +82,19 @@ std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> four{
     "     # "
 };
 
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> five{
-    "#######",
+digit_t five{
+    " ######",
     "#      ",
     "#      ",
     "#####  ",
-    "#    # ",
+    "     # ",
     "      #",
     "      #",
     "#    # ",
     " ####  "
 };
 
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> six{
+digit_t six{
     "  #### ",
     " #    #",
     "#      ",
@@ -101,7 +106,7 @@ std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> six{
     "  #### "
 };
 
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> seven{
+digit_t seven{
     "#######",
     "     # ",
     "    #  ",
@@ -113,7 +118,7 @@ std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> seven{
     "   #   "
 };
 
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> eight{
+digit_t eight{
     "  ###  ",
     " #   # ",
     " #   # ",
@@ -125,7 +130,7 @@ std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> eight{
     "  ###  "
 };
 
-std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> nine{
+digit_t nine{
     " ####  ",
     "#    # ",
     "#     #",
@@ -136,11 +141,11 @@ std::array<std::array<char, DIGIT_WIDTH>,DIGIT_HEIGHT> nine{
     "#    # ",
     " ####  "
 };
+} digits;
 
 // clang-format on
-void write_to_buffer(
-    std::array<std::array<char, DIGIT_WIDTH>, DIGIT_HEIGHT> digit,
-    size_t buffer_x, size_t buffer_y, char buffer[BUFFER_HEIGHT][BUFFER_WIDTH])
+void write_to_buffer(digit_t digit, size_t buffer_x, size_t buffer_y,
+                     digit_buffer_t& buffer)
 {
     for (size_t i = 0; i < DIGIT_HEIGHT; ++i)
         for (size_t j = 0; j < DIGIT_WIDTH; ++j)
@@ -168,46 +173,40 @@ int main(int argc, char* argv[])
     }
 
     // fill map with defined digits
-    std::map<char, decltype(zero)> numbers;
-    numbers.insert({'0', zero});
-    numbers.insert({'1', one});
-    numbers.insert({'2', two});
-    numbers.insert({'3', three});
-    numbers.insert({'4', four});
-    numbers.insert({'5', five});
-    numbers.insert({'6', six});
-    numbers.insert({'7', seven});
-    numbers.insert({'8', eight});
-    numbers.insert({'9', nine});
+    const std::map<char, digit_t> numbers{
+        {'0', digits.zero},  {'1', digits.one},   {'2', digits.two},
+        {'3', digits.three}, {'4', digits.four},  {'5', digits.five},
+        {'6', digits.six},   {'7', digits.seven}, {'8', digits.eight},
+        {'9', digits.nine}};
 
     // take a number from arguments
     std::ostringstream number;
     number << std::setw(DIGIT_NUMBER) << std::setfill('0') << argv[1];
 
     // create and initialize buffer for drawing
-    char buffer[BUFFER_HEIGHT][BUFFER_WIDTH];
-    std::memset(buffer, ' ', BUFFER_HEIGHT * BUFFER_WIDTH);
+    digit_buffer_t buffer;
+
+    for (auto& row : buffer)
+        for (auto& ch : row)
+            ch = ' ';
 
     // write each digit to buffer, if numer of digits is greater than 3, first 3
     // digits will be drawn
     for (size_t i = 0; i < DIGIT_NUMBER; ++i)
     {
-        write_to_buffer(numbers[number.str()[i]],
+        write_to_buffer(numbers.at(number.str()[i]),
                         (DIGIT_WIDTH + HORIZONTAL_SPACE) * i + HORIZONTAL_SPACE,
                         VERTICAL_SPACE, buffer);
     }
 
     // draw buffer in console
-    for (size_t i = 0; i < BUFFER_HEIGHT; ++i)
+    for (const auto& row : buffer)
     {
-        for (size_t j = 0; j < BUFFER_WIDTH; ++j)
-            std::cout << buffer[i][j];
+        for (const auto ch : row)
+            std::cout << ch;
 
         std::cout << '\n';
     }
-
-    // clear the output stream
-    std::cout.flush();
 
     return EXIT_SUCCESS;
 }
