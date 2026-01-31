@@ -3,10 +3,11 @@
 #include <format>
 #include <iostream>
 #include <map>
+#include <string_view>
 
 constexpr size_t VERTICAL_SPACE = 1;
 constexpr size_t HORIZONTAL_SPACE = 1;
-constexpr size_t DIGIT_NUMBER = 3;
+constexpr size_t DIGIT_NUMBER = 12;
 constexpr size_t DIGIT_HEIGHT = 9, DIGIT_WIDTH = 8;
 constexpr size_t BUFFER_HEIGHT = DIGIT_HEIGHT + 2;
 constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
@@ -143,22 +144,29 @@ digit_t nine{
 } digits;
 
 // clang-format on
-void write_to_buffer(digit_t digit, size_t buffer_x, size_t buffer_y,
-                     digit_buffer_t& buffer)
+void write_to_buffer(digit_t digit, size_t buffer_x_offset,
+                     size_t buffer_y_offset, digit_buffer_t& buffer)
 {
     for (size_t i = 0; i < DIGIT_HEIGHT; ++i)
         for (size_t j = 0; j < DIGIT_WIDTH; ++j)
-            buffer[buffer_y + i][buffer_x + j] = digit[i][j];
+            buffer[buffer_y_offset + i][buffer_x_offset + j] = digit[i][j];
 }
 
-bool is_unsigned_integer(char* num)
+bool is_unsigned_integer(std::string_view num)
 {
-    for (; *num; ++num)
-        if (!std::isdigit(*num))
+    for (auto digit : num)
+        if (!std::isdigit(digit))
             return false;
 
     return true;
 }
+
+// fill map with defined digits
+const std::map<char, digit_t> numbers{{'0', digits.zero},  {'1', digits.one},
+                                      {'2', digits.two},   {'3', digits.three},
+                                      {'4', digits.four},  {'5', digits.five},
+                                      {'6', digits.six},   {'7', digits.seven},
+                                      {'8', digits.eight}, {'9', digits.nine}};
 
 int main(int argc, char* argv[])
 {
@@ -171,15 +179,8 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // fill map with defined digits
-    const std::map<char, digit_t> numbers{
-        {'0', digits.zero},  {'1', digits.one},   {'2', digits.two},
-        {'3', digits.three}, {'4', digits.four},  {'5', digits.five},
-        {'6', digits.six},   {'7', digits.seven}, {'8', digits.eight},
-        {'9', digits.nine}};
-
     // take a number from arguments
-    std::string number = std::format("{:0>}", argv[1]);
+    std::string number = std::format("{:0>12}", argv[1]);
 
     // create and initialize buffer for drawing
     digit_buffer_t buffer;
