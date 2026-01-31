@@ -1,9 +1,8 @@
 #include <array>
 #include <cstring>
-#include <iomanip>
+#include <format>
 #include <iostream>
 #include <map>
-#include <sstream>
 
 constexpr size_t VERTICAL_SPACE = 1;
 constexpr size_t HORIZONTAL_SPACE = 1;
@@ -180,8 +179,7 @@ int main(int argc, char* argv[])
         {'9', digits.nine}};
 
     // take a number from arguments
-    std::ostringstream number;
-    number << std::setw(DIGIT_NUMBER) << std::setfill('0') << argv[1];
+    std::string number = std::format("{:0>}", argv[1]);
 
     // create and initialize buffer for drawing
     digit_buffer_t buffer;
@@ -194,7 +192,7 @@ int main(int argc, char* argv[])
     // digits will be drawn
     for (size_t i = 0; i < DIGIT_NUMBER; ++i)
     {
-        write_to_buffer(numbers.at(number.str()[i]),
+        write_to_buffer(numbers.at(number[i]),
                         (DIGIT_WIDTH + HORIZONTAL_SPACE) * i + HORIZONTAL_SPACE,
                         VERTICAL_SPACE, buffer);
     }
