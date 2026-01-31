@@ -13,6 +13,7 @@
 #include <cstring>
 #include <format>
 #include <iostream>
+#include <iterator>
 #include <string_view>
 #include <unordered_map>
 
@@ -166,8 +167,10 @@ public:
     {
         Config::digit_buffer_t buffer;
         _init_buffer(buffer);
+
         std::string number = std::format("{:0>12}", num);
         _write_buffer(buffer, number);
+
         return buffer;
     }
 
@@ -175,8 +178,10 @@ public:
     {
         Config::digit_buffer_t buffer;
         _init_buffer(buffer);
+
         std::string number = std::format("{:0>12}", num);
         _write_buffer(buffer, number);
+
         return buffer;
     }
 
@@ -185,9 +190,7 @@ public:
         // draw buffer in console
         for (const auto& row : buf)
         {
-            for (const auto ch : row)
-                std::cout << ch;
-
+            std::ranges::copy(row, std::ostream_iterator<char>(std::cout));
             std::cout << '\n';
         }
     }
@@ -204,8 +207,7 @@ private:
     void _init_buffer(Config::digit_buffer_t& buf)
     {
         for (auto& row : buf)
-            for (auto& ch : row)
-                ch = ' ';
+            std::ranges::fill(row, ' ');
     }
 
     void _write_buffer(Config::digit_buffer_t& buf, std::string_view num)
