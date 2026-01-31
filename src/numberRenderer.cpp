@@ -6,6 +6,7 @@
  * @brief Renders ascii number from integer
  *
  * @todo Incapsulate all this shit and make API
+ * @todo MORE STD!!!
  */
 #include <algorithm>
 #include <array>
@@ -185,14 +186,16 @@ public:
         return buffer;
     }
 
+    // draw buffer in console
     static void display(Config::digit_buffer_t const& buf)
     {
-        // draw buffer in console
-        for (const auto& row : buf)
-        {
-            std::ranges::copy(row, std::ostream_iterator<char>(std::cout));
-            std::cout << '\n';
-        }
+        std::ranges::for_each(
+            buf,
+            [](const auto& row)
+            {
+                std::ranges::copy(row, std::ostream_iterator<char>(std::cout));
+                std::cout << '\n';
+            });
     }
 
 private:
@@ -206,8 +209,8 @@ private:
 
     void _init_buffer(Config::digit_buffer_t& buf)
     {
-        for (auto& row : buf)
-            std::ranges::fill(row, ' ');
+        std::ranges::for_each(buf,
+                              [](auto& row) { std::ranges::fill(row, ' '); });
     }
 
     void _write_buffer(Config::digit_buffer_t& buf, std::string_view num)
