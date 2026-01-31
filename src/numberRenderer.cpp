@@ -14,24 +14,27 @@
 #include <string_view>
 #include <unordered_map>
 
-constexpr size_t VERTICAL_SPACE = 1;
-constexpr size_t HORIZONTAL_SPACE = 1;
-constexpr size_t DIGIT_NUMBER = 12;
-constexpr size_t DIGIT_HEIGHT = 9, DIGIT_WIDTH = 8;
-constexpr size_t BUFFER_HEIGHT = DIGIT_HEIGHT + 2;
-constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
-                                HORIZONTAL_SPACE * DIGIT_NUMBER +
-                                HORIZONTAL_SPACE;
+struct Config
+{
+    static constexpr size_t VERTICAL_SPACE = 1;
+    static constexpr size_t HORIZONTAL_SPACE = 1;
+    static constexpr size_t DIGIT_NUMBER = 12;
+    static constexpr size_t DIGIT_HEIGHT = 9, DIGIT_WIDTH = 8;
+    static constexpr size_t BUFFER_HEIGHT = DIGIT_HEIGHT + 2;
+    static constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
+                                           HORIZONTAL_SPACE * DIGIT_NUMBER +
+                                           HORIZONTAL_SPACE;
 
-using digit_t = std::array<std::array<char, DIGIT_WIDTH>, DIGIT_HEIGHT>;
-using digit_buffer_t =
-    std::array<std::array<char, BUFFER_WIDTH>, BUFFER_HEIGHT>;
+    using digit_t = std::array<std::array<char, DIGIT_WIDTH>, DIGIT_HEIGHT>;
+    using digit_buffer_t =
+        std::array<std::array<char, BUFFER_WIDTH>, BUFFER_HEIGHT>;
+};
 
+// definitions of digits to draw
 struct char_digits
 {
-    // definitions of digits to draw
     // clang-format off
-digit_t zero{
+constexpr static Config::digit_t zero{
     "  ###  ",
     " #   # ",
     "#     #",
@@ -43,7 +46,7 @@ digit_t zero{
     "  ###  "
 };
 
-digit_t one{
+constexpr static Config::digit_t one{
     "   #   ",
     "  ##   ",
     " # #   ",
@@ -55,7 +58,7 @@ digit_t one{
     " ##### "
 };
 
-digit_t two{
+constexpr static Config::digit_t two{
     "  ###  ",
     " #   # ",
     "#     #",
@@ -67,7 +70,7 @@ digit_t two{
     "#######"
 };
 
-digit_t three{
+constexpr static Config::digit_t three{
     " ####  ",
     "#    # ",
     "#     #",
@@ -79,7 +82,7 @@ digit_t three{
     " ####  "
 };
 
-digit_t four{
+constexpr static Config::digit_t four{
     "     # ",
     "    ## ",
     "   # # ",
@@ -91,7 +94,7 @@ digit_t four{
     "     # "
 };
 
-digit_t five{
+constexpr static Config::digit_t five{
     " ######",
     "#      ",
     "#      ",
@@ -103,19 +106,19 @@ digit_t five{
     " ####  "
 };
 
-digit_t six{
+constexpr static Config::digit_t six{
     "  #### ",
-    " #    #",
+    " #     ",
     "#      ",
     "# #### ",
     "##    #",
     "#     #",
     "#     #",
-    " #    #",
-    "  #### "
+    "#    # ",
+    " ####  "
 };
 
-digit_t seven{
+constexpr static Config::digit_t seven{
     "#######",
     "     # ",
     "    #  ",
@@ -127,7 +130,7 @@ digit_t seven{
     "   #   "
 };
 
-digit_t eight{
+constexpr static Config::digit_t eight{
     "  ###  ",
     " #   # ",
     " #   # ",
@@ -139,27 +142,89 @@ digit_t eight{
     "  ###  "
 };
 
-digit_t nine{
-    " ####  ",
-    "#    # ",
+constexpr static Config::digit_t nine{
+    "  #### ",
+    " #    #",
     "#     #",
     "#     #",
     "#    ##",
     " #### #",
     "      #",
-    "#    # ",
+    "     # ",
     " ####  "
 };
-} digits;
+};
 
 // clang-format on
-void write_to_buffer(digit_t digit, size_t buffer_x_offset,
-                     size_t buffer_y_offset, digit_buffer_t& buffer)
+
+class Renderer final
 {
-    for (size_t i = 0; i < DIGIT_HEIGHT; ++i)
-        for (size_t j = 0; j < DIGIT_WIDTH; ++j)
-            buffer[buffer_y_offset + i][buffer_x_offset + j] = digit[i][j];
-}
+public:
+    Config::digit_buffer_t render(unsigned long num)
+    {
+        Config::digit_buffer_t buffer;
+        _init_buffer(buffer);
+        std::string number = std::format("{:0>12}", num);
+        _write_buffer(buffer, number);
+        return buffer;
+    }
+
+    Config::digit_buffer_t render(std::string_view num)
+    {
+        Config::digit_buffer_t buffer;
+        _init_buffer(buffer);
+        std::string number = std::format("{:0>12}", num);
+        _write_buffer(buffer, number);
+        return buffer;
+    }
+
+    static void display(Config::digit_buffer_t const& buf)
+    {
+        // draw buffer in console
+        for (const auto& row : buf)
+        {
+            for (const auto ch : row)
+                std::cout << ch;
+
+            std::cout << '\n';
+        }
+    }
+
+private:
+    // fill map with defined digits
+    inline static const std::unordered_map<char, Config::digit_t> numbers{
+        {'0', char_digits::zero},  {'1', char_digits::one},
+        {'2', char_digits::two},   {'3', char_digits::three},
+        {'4', char_digits::four},  {'5', char_digits::five},
+        {'6', char_digits::six},   {'7', char_digits::seven},
+        {'8', char_digits::eight}, {'9', char_digits::nine}};
+
+    void _init_buffer(Config::digit_buffer_t& buf)
+    {
+        for (auto& row : buf)
+            for (auto& ch : row)
+                ch = ' ';
+    }
+
+    void _write_buffer(Config::digit_buffer_t& buf, std::string_view num)
+    {
+        for (size_t i = 0; i < Config::DIGIT_NUMBER; ++i)
+            _write_digit_to_buffer(
+                numbers.at(num[i]),
+                (Config::DIGIT_WIDTH + Config::HORIZONTAL_SPACE) * i +
+                    Config::HORIZONTAL_SPACE,
+                Config::VERTICAL_SPACE, buf);
+    }
+
+    void _write_digit_to_buffer(Config::digit_t const& digit,
+                                size_t buffer_x_offset, size_t buffer_y_offset,
+                                Config::digit_buffer_t& buffer)
+    {
+        for (size_t i = 0; i < Config::DIGIT_HEIGHT; ++i)
+            for (size_t j = 0; j < Config::DIGIT_WIDTH; ++j)
+                buffer[buffer_y_offset + i][buffer_x_offset + j] = digit[i][j];
+    }
+};
 
 bool is_unsigned_integer(std::string_view num)
 {
@@ -169,13 +234,6 @@ bool is_unsigned_integer(std::string_view num)
 
     return true;
 }
-
-// fill map with defined digits
-const std::unordered_map<char, digit_t> numbers{
-    {'0', digits.zero},  {'1', digits.one},   {'2', digits.two},
-    {'3', digits.three}, {'4', digits.four},  {'5', digits.five},
-    {'6', digits.six},   {'7', digits.seven}, {'8', digits.eight},
-    {'9', digits.nine}};
 
 int main(int argc, char* argv[])
 {
@@ -188,31 +246,10 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // take a number from arguments
-    std::string number = std::format("{:0>12}", argv[1]);
+    Renderer render;
 
-    // create and initialize buffer for drawing
-    digit_buffer_t buffer;
-
-    for (auto& row : buffer)
-        for (auto& ch : row)
-            ch = ' ';
-
-    // write each digit to buffer, if numer of digits is greater than 3, first 3
-    // digits will be drawn
-    for (size_t i = 0; i < DIGIT_NUMBER; ++i)
-        write_to_buffer(numbers.at(number[i]),
-                        (DIGIT_WIDTH + HORIZONTAL_SPACE) * i + HORIZONTAL_SPACE,
-                        VERTICAL_SPACE, buffer);
-
-    // draw buffer in console
-    for (const auto& row : buffer)
-    {
-        for (const auto ch : row)
-            std::cout << ch;
-
-        std::cout << '\n';
-    }
+    auto num = render.render(argv[1]);
+    render.display(num);
 
     return EXIT_SUCCESS;
 }
