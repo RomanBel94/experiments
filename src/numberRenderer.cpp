@@ -166,17 +166,9 @@ static constexpr Config::digit_t nine{
 public:
     Config::digit_buffer_t get_buffer() const noexcept { return m_buffer; }
 
-    void draw(unsigned long num)
-    {
-        clear_buffer();
-        _draw_impl(std::format("{:0>12}", num));
-    }
+    void draw(unsigned long num) { _draw_impl(std::format("{:0>12}", num)); }
 
-    void draw(std::string_view num)
-    {
-        clear_buffer();
-        _draw_impl(std::format("{:0>12}", num));
-    }
+    void draw(std::string_view num) { _draw_impl(std::format("{:0>12}", num)); }
 
     void clear_buffer()
     {
@@ -207,7 +199,11 @@ private:
         {'6', char_digits::six},   {'7', char_digits::seven},
         {'8', char_digits::eight}, {'9', char_digits::nine}};
 
-    void _draw_impl(std::string_view num) { _write_buffer(m_buffer, num); }
+    void _draw_impl(std::string_view num)
+    {
+        clear_buffer();
+        _write_buffer(m_buffer, num);
+    }
 
     void _write_buffer(Config::digit_buffer_t& buf, std::string_view num)
     {
