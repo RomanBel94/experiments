@@ -41,7 +41,7 @@ private:
 // definitions of digits to draw
 struct char_digits
 {
-static constexpr  Config::digit_t zero{
+static constexpr Config::digit_t zero{
     "  ###  ",
     " #   # ",
     "#     #",
@@ -53,7 +53,7 @@ static constexpr  Config::digit_t zero{
     "  ###  "
 };
 
-static constexpr  Config::digit_t one{
+static constexpr Config::digit_t one{
     "   #   ",
     "  ##   ",
     " # #   ",
@@ -65,7 +65,7 @@ static constexpr  Config::digit_t one{
     " ##### "
 };
 
-static constexpr  Config::digit_t two{
+static constexpr Config::digit_t two{
     "  ###  ",
     " #   # ",
     "#     #",
@@ -77,7 +77,7 @@ static constexpr  Config::digit_t two{
     "#######"
 };
 
-static constexpr  Config::digit_t three{
+static constexpr Config::digit_t three{
     " ####  ",
     "#    # ",
     "#     #",
@@ -89,7 +89,7 @@ static constexpr  Config::digit_t three{
     " ####  "
 };
 
-static constexpr  Config::digit_t four{
+static constexpr Config::digit_t four{
     "     # ",
     "    ## ",
     "   # # ",
@@ -101,7 +101,7 @@ static constexpr  Config::digit_t four{
     "     # "
 };
 
-static constexpr  Config::digit_t five{
+static constexpr Config::digit_t five{
     " ######",
     "#      ",
     "#      ",
@@ -113,7 +113,7 @@ static constexpr  Config::digit_t five{
     " ####  "
 };
 
-static constexpr  Config::digit_t six{
+static constexpr Config::digit_t six{
     "  #### ",
     " #     ",
     "#      ",
@@ -125,7 +125,7 @@ static constexpr  Config::digit_t six{
     " ####  "
 };
 
-static constexpr  Config::digit_t seven{
+static constexpr Config::digit_t seven{
     "#######",
     "     # ",
     "    #  ",
@@ -137,7 +137,7 @@ static constexpr  Config::digit_t seven{
     "   #   "
 };
 
-static constexpr  Config::digit_t eight{
+static constexpr Config::digit_t eight{
     "  ###  ",
     " #   # ",
     " #   # ",
@@ -149,7 +149,7 @@ static constexpr  Config::digit_t eight{
     "  ###  "
 };
 
-static constexpr  Config::digit_t nine{
+static constexpr Config::digit_t nine{
     "  #### ",
     " #    #",
     "#     #",
@@ -164,33 +164,31 @@ static constexpr  Config::digit_t nine{
 
     // clang-format on
 public:
-    Config::digit_buffer_t render(unsigned long num)
+    Config::digit_buffer_t get_buffer() const noexcept { return m_buffer; }
+
+    void draw(unsigned long num)
     {
-        Config::digit_buffer_t buffer;
-        _init_buffer(buffer);
-
-        std::string number = std::format("{:0>12}", num);
-        _write_buffer(buffer, number);
-
-        return buffer;
+        clear_buffer();
+        _draw_impl(std::format("{:0>12}", num));
     }
 
-    Config::digit_buffer_t render(std::string_view num)
+    void draw(std::string_view num)
     {
-        Config::digit_buffer_t buffer;
-        _init_buffer(buffer);
+        clear_buffer();
+        _draw_impl(std::format("{:0>12}", num));
+    }
 
-        std::string number = std::format("{:0>12}", num);
-        _write_buffer(buffer, number);
-
-        return buffer;
+    void clear_buffer()
+    {
+        std::ranges::for_each(m_buffer,
+                              [](auto& row) { std::ranges::fill(row, ' '); });
     }
 
     // draw buffer in console
-    static void display(Config::digit_buffer_t const& buf)
+    void display()
     {
         std::ranges::for_each(
-            buf,
+            m_buffer,
             [](const auto& row)
             {
                 std::ranges::copy(row, std::ostream_iterator<char>(std::cout));
@@ -199,6 +197,8 @@ public:
     }
 
 private:
+    Config::digit_buffer_t m_buffer;
+
     // fill map with defined digits
     inline static const std::unordered_map<char, Config::digit_t> numbers{
         {'0', char_digits::zero},  {'1', char_digits::one},
@@ -207,11 +207,7 @@ private:
         {'6', char_digits::six},   {'7', char_digits::seven},
         {'8', char_digits::eight}, {'9', char_digits::nine}};
 
-    void _init_buffer(Config::digit_buffer_t& buf)
-    {
-        std::ranges::for_each(buf,
-                              [](auto& row) { std::ranges::fill(row, ' '); });
-    }
+    void _draw_impl(std::string_view num) { _write_buffer(m_buffer, num); }
 
     void _write_buffer(Config::digit_buffer_t& buf, std::string_view num)
     {
@@ -247,8 +243,11 @@ int main(int argc, char* argv[])
 
     Renderer render;
 
-    auto num = render.render(argv[1]);
-    render.display(num);
+    render.draw(argv[1]);
+    render.display();
+    render.clear_buffer();
+    render.draw(1488);
+    render.display();
 
     return EXIT_SUCCESS;
 }
