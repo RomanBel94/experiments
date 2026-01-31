@@ -10,11 +10,16 @@
  */
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cctype>
+#include <cstddef>
+#include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <format>
 #include <iostream>
 #include <iterator>
+#include <stdexcept>
 #include <string_view>
 #include <unordered_map>
 
@@ -166,18 +171,24 @@ static constexpr Config::digit_t nine{
 public:
     Config::digit_buffer_t get_buffer() const noexcept { return m_buffer; }
 
-    void draw(unsigned long num) { _draw_impl(std::format("{:0>12}", num)); }
+    void draw(std::size_t num) { _draw_impl(std::format("{:0>12}", num)); }
 
-    void draw(std::string_view num) { _draw_impl(std::format("{:0>12}", num)); }
+    void draw(std::string_view num)
+    {
+        if (!std::ranges::all_of(num, isdigit))
+            throw std::invalid_argument("not an unsigned int");
 
-    void clear_buffer()
+        _draw_impl(std::format("{:0>12}", num));
+    }
+
+    void clear_buffer() noexcept
     {
         std::ranges::for_each(m_buffer,
                               [](auto& row) { std::ranges::fill(row, ' '); });
     }
 
     // draw buffer in console
-    void display()
+    void display() const noexcept
     {
         std::ranges::for_each(
             m_buffer,
@@ -199,7 +210,7 @@ private:
         {'6', char_digits::six},   {'7', char_digits::seven},
         {'8', char_digits::eight}, {'9', char_digits::nine}};
 
-    void _draw_impl(std::string_view num)
+    void _draw_impl(std::string_view num) noexcept
     {
         clear_buffer();
         _write_buffer(m_buffer, num);
@@ -217,7 +228,7 @@ private:
 
     void _write_digit_to_buffer(Config::digit_t const& digit,
                                 size_t buffer_x_offset, size_t buffer_y_offset,
-                                Config::digit_buffer_t& buffer)
+                                Config::digit_buffer_t& buffer) noexcept
     {
         for (size_t i = 0; i < Config::DIGIT_HEIGHT; ++i)
             for (size_t j = 0; j < Config::DIGIT_WIDTH; ++j)
@@ -228,8 +239,7 @@ private:
 int main(int argc, char* argv[])
 {
     // if integer number is not given or too many arguments
-    if (argc != 2 || !std::ranges::all_of(std::string_view(argv[1]), [](char i)
-                                          { return std::isdigit(i); }))
+    if (argc != 2)
     {
         std::cout << "Usage: numberRenderer <number>\twhere <number> is "
                      "unsigned integer"
@@ -237,13 +247,21 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    Renderer render;
+    try
+    {
+        Renderer render;
 
-    render.draw(argv[1]);
-    render.display();
-    render.clear_buffer();
-    render.draw(1488);
-    render.display();
+        render.draw(argv[1]);
+        render.display();
+        render.clear_buffer();
+        render.draw(1488);
+        render.display();
+    }
+    catch (const std::exception& ex)
+    {
+        std::cerr << ex.what() << '\n';
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }
