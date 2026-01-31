@@ -7,7 +7,9 @@
  *
  * @todo Incapsulate all this shit and make API
  */
+#include <algorithm>
 #include <array>
+#include <cctype>
 #include <cstring>
 #include <format>
 #include <iostream>
@@ -226,19 +228,11 @@ private:
     }
 };
 
-bool is_unsigned_integer(std::string_view num)
-{
-    for (auto digit : num)
-        if (!std::isdigit(digit))
-            return false;
-
-    return true;
-}
-
 int main(int argc, char* argv[])
 {
     // if integer number is not given or too many arguments
-    if (argc != 2 || !is_unsigned_integer(argv[1]))
+    if (argc != 2 || !std::ranges::all_of(std::string_view(argv[1]), [](char i)
+                                          { return std::isdigit(i); }))
     {
         std::cout << "Usage: numberRenderer <number>\twhere <number> is "
                      "unsigned integer"
