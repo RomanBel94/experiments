@@ -1,9 +1,18 @@
+/**
+ * @file numberRenderer.cpp
+ *
+ * @author Roman Belyaev
+ *
+ * @brief Renders ascii number from integer
+ *
+ * @todo Incapsulate all this shit and make API
+ */
 #include <array>
 #include <cstring>
 #include <format>
 #include <iostream>
-#include <map>
 #include <string_view>
+#include <unordered_map>
 
 constexpr size_t VERTICAL_SPACE = 1;
 constexpr size_t HORIZONTAL_SPACE = 1;
@@ -162,11 +171,11 @@ bool is_unsigned_integer(std::string_view num)
 }
 
 // fill map with defined digits
-const std::map<char, digit_t> numbers{{'0', digits.zero},  {'1', digits.one},
-                                      {'2', digits.two},   {'3', digits.three},
-                                      {'4', digits.four},  {'5', digits.five},
-                                      {'6', digits.six},   {'7', digits.seven},
-                                      {'8', digits.eight}, {'9', digits.nine}};
+const std::unordered_map<char, digit_t> numbers{
+    {'0', digits.zero},  {'1', digits.one},   {'2', digits.two},
+    {'3', digits.three}, {'4', digits.four},  {'5', digits.five},
+    {'6', digits.six},   {'7', digits.seven}, {'8', digits.eight},
+    {'9', digits.nine}};
 
 int main(int argc, char* argv[])
 {
@@ -174,7 +183,7 @@ int main(int argc, char* argv[])
     if (argc != 2 || !is_unsigned_integer(argv[1]))
     {
         std::cout << "Usage: numberRenderer <number>\twhere <number> is "
-                     "positive number between 0 and 999 including"
+                     "unsigned integer"
                   << std::endl;
         return EXIT_FAILURE;
     }
@@ -192,11 +201,9 @@ int main(int argc, char* argv[])
     // write each digit to buffer, if numer of digits is greater than 3, first 3
     // digits will be drawn
     for (size_t i = 0; i < DIGIT_NUMBER; ++i)
-    {
         write_to_buffer(numbers.at(number[i]),
                         (DIGIT_WIDTH + HORIZONTAL_SPACE) * i + HORIZONTAL_SPACE,
                         VERTICAL_SPACE, buffer);
-    }
 
     // draw buffer in console
     for (const auto& row : buffer)
