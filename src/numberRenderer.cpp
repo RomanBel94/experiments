@@ -14,27 +14,30 @@
 #include <string_view>
 #include <unordered_map>
 
-struct Config
+class Renderer final
 {
-    static constexpr size_t VERTICAL_SPACE = 1;
-    static constexpr size_t HORIZONTAL_SPACE = 1;
-    static constexpr size_t DIGIT_NUMBER = 12;
-    static constexpr size_t DIGIT_HEIGHT = 9, DIGIT_WIDTH = 8;
-    static constexpr size_t BUFFER_HEIGHT = DIGIT_HEIGHT + 2;
-    static constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
-                                           HORIZONTAL_SPACE * DIGIT_NUMBER +
-                                           HORIZONTAL_SPACE;
+private:
+    struct Config
+    {
+        static constexpr size_t VERTICAL_SPACE = 1;
+        static constexpr size_t HORIZONTAL_SPACE = 1;
+        static constexpr size_t DIGIT_NUMBER = 12;
+        static constexpr size_t DIGIT_HEIGHT = 9, DIGIT_WIDTH = 8;
+        static constexpr size_t BUFFER_HEIGHT = DIGIT_HEIGHT + 2;
+        static constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
+                                               HORIZONTAL_SPACE * DIGIT_NUMBER +
+                                               HORIZONTAL_SPACE;
 
-    using digit_t = std::array<std::array<char, DIGIT_WIDTH>, DIGIT_HEIGHT>;
-    using digit_buffer_t =
-        std::array<std::array<char, BUFFER_WIDTH>, BUFFER_HEIGHT>;
-};
+        using digit_t = std::array<std::array<char, DIGIT_WIDTH>, DIGIT_HEIGHT>;
+        using digit_buffer_t =
+            std::array<std::array<char, BUFFER_WIDTH>, BUFFER_HEIGHT>;
+    };
 
+    // clang-format off
 // definitions of digits to draw
 struct char_digits
 {
-    // clang-format off
-constexpr static Config::digit_t zero{
+static constexpr  Config::digit_t zero{
     "  ###  ",
     " #   # ",
     "#     #",
@@ -46,7 +49,7 @@ constexpr static Config::digit_t zero{
     "  ###  "
 };
 
-constexpr static Config::digit_t one{
+static constexpr  Config::digit_t one{
     "   #   ",
     "  ##   ",
     " # #   ",
@@ -58,7 +61,7 @@ constexpr static Config::digit_t one{
     " ##### "
 };
 
-constexpr static Config::digit_t two{
+static constexpr  Config::digit_t two{
     "  ###  ",
     " #   # ",
     "#     #",
@@ -70,7 +73,7 @@ constexpr static Config::digit_t two{
     "#######"
 };
 
-constexpr static Config::digit_t three{
+static constexpr  Config::digit_t three{
     " ####  ",
     "#    # ",
     "#     #",
@@ -82,7 +85,7 @@ constexpr static Config::digit_t three{
     " ####  "
 };
 
-constexpr static Config::digit_t four{
+static constexpr  Config::digit_t four{
     "     # ",
     "    ## ",
     "   # # ",
@@ -94,7 +97,7 @@ constexpr static Config::digit_t four{
     "     # "
 };
 
-constexpr static Config::digit_t five{
+static constexpr  Config::digit_t five{
     " ######",
     "#      ",
     "#      ",
@@ -106,7 +109,7 @@ constexpr static Config::digit_t five{
     " ####  "
 };
 
-constexpr static Config::digit_t six{
+static constexpr  Config::digit_t six{
     "  #### ",
     " #     ",
     "#      ",
@@ -118,7 +121,7 @@ constexpr static Config::digit_t six{
     " ####  "
 };
 
-constexpr static Config::digit_t seven{
+static constexpr  Config::digit_t seven{
     "#######",
     "     # ",
     "    #  ",
@@ -130,7 +133,7 @@ constexpr static Config::digit_t seven{
     "   #   "
 };
 
-constexpr static Config::digit_t eight{
+static constexpr  Config::digit_t eight{
     "  ###  ",
     " #   # ",
     " #   # ",
@@ -142,7 +145,7 @@ constexpr static Config::digit_t eight{
     "  ###  "
 };
 
-constexpr static Config::digit_t nine{
+static constexpr  Config::digit_t nine{
     "  #### ",
     " #    #",
     "#     #",
@@ -155,10 +158,7 @@ constexpr static Config::digit_t nine{
 };
 };
 
-// clang-format on
-
-class Renderer final
-{
+    // clang-format on
 public:
     Config::digit_buffer_t render(unsigned long num)
     {
