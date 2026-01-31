@@ -19,6 +19,7 @@
 #include <format>
 #include <iostream>
 #include <iterator>
+#include <source_location>
 #include <stdexcept>
 #include <string_view>
 #include <unordered_map>
@@ -176,7 +177,9 @@ public:
     void draw(std::string_view num)
     {
         if (!std::ranges::all_of(num, isdigit))
-            throw std::invalid_argument("not an unsigned int");
+            throw std::invalid_argument(
+                std::format("{}: not an unsigned int",
+                            std::source_location::current().function_name()));
 
         _draw_impl(std::format("{:0>12}", num));
     }
@@ -227,12 +230,12 @@ private:
     }
 
     void _write_digit_to_buffer(Config::digit_t const& digit,
-                                size_t buffer_x_offset, size_t buffer_y_offset,
+                                std::size_t x_offset, std::size_t y_offset,
                                 Config::digit_buffer_t& buffer) noexcept
     {
         for (size_t i = 0; i < Config::DIGIT_HEIGHT; ++i)
             for (size_t j = 0; j < Config::DIGIT_WIDTH; ++j)
-                buffer[buffer_y_offset + i][buffer_x_offset + j] = digit[i][j];
+                buffer[y_offset + i][x_offset + j] = digit[i][j];
     }
 };
 
@@ -253,7 +256,6 @@ int main(int argc, char* argv[])
 
         render.draw(argv[1]);
         render.display();
-        render.clear_buffer();
         render.draw(1488);
         render.display();
     }
