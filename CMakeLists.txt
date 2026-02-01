@@ -26,8 +26,6 @@ add_executable(findUniqueWithXOR ${CMAKE_CURRENT_SOURCE_DIR}/src/findUniqueWithX
 
 add_executable(nullptrNaming ${CMAKE_CURRENT_SOURCE_DIR}/src/nullptrNaming.cpp)
 
-add_executable(recursivelyCallingMain ${CMAKE_CURRENT_SOURCE_DIR}/src/recursivelyCallingMain.cpp)
-
 add_executable(templateFactorial ${CMAKE_CURRENT_SOURCE_DIR}/src/templateFactorial.cpp)
 
 add_executable(twoSum ${CMAKE_CURRENT_SOURCE_DIR}/src/twoSum.cpp)
@@ -48,8 +46,6 @@ add_executable(variadic_arguments ${CMAKE_CURRENT_SOURCE_DIR}/src/variadic_argum
 add_executable(platform_calculator ${CMAKE_CURRENT_SOURCE_DIR}/src/platform_calculator.cpp)
 
 add_executable(countWords ${CMAKE_CURRENT_SOURCE_DIR}/src/countWords.cpp)
-
-add_executable(percentDiff ${CMAKE_CURRENT_SOURCE_DIR}/src/percentDiff.cpp)
 
 add_executable(numberRenderer ${CMAKE_CURRENT_SOURCE_DIR}/src/numberRenderer.cpp)
 
