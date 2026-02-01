@@ -10,19 +10,14 @@
  * @bug bad whitespaes in output file
  */
 #include <algorithm>
-#include <array>
 #include <cassert>
-#include <cctype>
 #include <cstddef>
-#include <cstdlib>
-#include <cstring>
 #include <exception>
 #include <filesystem>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <ostream>
 #include <source_location>
 #include <stdexcept>
 #include <string_view>
@@ -250,7 +245,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-    // if integer number is not given or too many arguments
     if (argc != 2)
     {
         std::cout << "Usage: numberRenderer <number>\twhere <number> is "
