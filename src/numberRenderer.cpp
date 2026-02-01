@@ -18,6 +18,7 @@
 #include <format>
 #include <iostream>
 #include <iterator>
+#include <ostream>
 #include <source_location>
 #include <stdexcept>
 #include <string_view>
@@ -194,15 +195,15 @@ public:
     }
 
     // draw buffer in console
-    void display() const noexcept
+    void display(std::ostream& stream) const noexcept
     {
-        std::ranges::for_each(
-            m_buffer,
-            [](const auto& row)
-            {
-                std::ranges::copy(row, std::ostream_iterator<char>(std::cout));
-                std::cout << '\n';
-            });
+        std::ranges::for_each(m_buffer,
+                              [&stream](const auto& row)
+                              {
+                                  std::ranges::copy(
+                                      row, std::ostream_iterator<char>(stream));
+                                  std::cout << '\n';
+                              });
     }
 
 private:
@@ -258,9 +259,9 @@ int main(int argc, char* argv[])
         Renderer render;
 
         render.draw(argv[1]);
-        render.display();
+        render.display(std::cout);
         render.draw(1488);
-        render.display();
+        render.display(std::clog);
     }
     catch (const std::exception& ex)
     {
