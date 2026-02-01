@@ -5,7 +5,6 @@
  *
  * @brief Renders ascii number from integer
  *
- * @todo Incapsulate all this shit and make API
  * @todo MORE STD!!!
  */
 #include <algorithm>
@@ -32,6 +31,7 @@ private:
         static constexpr size_t VERTICAL_SPACE = 1;
         static constexpr size_t HORIZONTAL_SPACE = 1;
         static constexpr size_t DIGIT_NUMBER = 12;
+        static constexpr auto DIGIT_FORMAT = "{:0>12}";
         static constexpr size_t DIGIT_HEIGHT = 9, DIGIT_WIDTH = 8;
         static constexpr size_t BUFFER_HEIGHT = DIGIT_HEIGHT + 2;
         static constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
@@ -172,7 +172,10 @@ static constexpr Config::digit_t nine{
 public:
     Config::digit_buffer_t get_buffer() const noexcept { return m_buffer; }
 
-    void draw(std::size_t num) { _draw_impl(std::format("{:0>12}", num)); }
+    void draw(std::size_t num)
+    {
+        _draw_impl(std::format(Config::DIGIT_FORMAT, num));
+    }
 
     void draw(std::string_view num)
     {
@@ -181,7 +184,7 @@ public:
                 std::format("{}: not an unsigned int",
                             std::source_location::current().function_name()));
 
-        _draw_impl(std::format("{:0>12}", num));
+        _draw_impl(std::format(Config::DIGIT_FORMAT, num));
     }
 
     void clear_buffer() noexcept
