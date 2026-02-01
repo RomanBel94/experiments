@@ -6,6 +6,8 @@
  * @brief Renders ascii number from integer
  *
  * @todo MORE STD!!!
+ *
+ * @bug bad whitespaes in output file
  */
 #include <algorithm>
 #include <array>
@@ -15,7 +17,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <exception>
+#include <filesystem>
 #include <format>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <ostream>
@@ -202,7 +206,8 @@ public:
                               {
                                   std::ranges::copy(
                                       row, std::ostream_iterator<char>(stream));
-                                  std::cout << '\n';
+
+                                  stream << '\n';
                               });
     }
 
@@ -260,8 +265,16 @@ int main(int argc, char* argv[])
 
         render.draw(argv[1]);
         render.display(std::cout);
-        render.draw(1488);
-        render.display(std::clog);
+
+        std::filesystem::path output_filename("numberRenderer_test_output.txt");
+        if (std::ofstream out(output_filename); out.is_open())
+        {
+            render.draw(1488);
+            render.display(out);
+        }
+        else
+            std::cerr << std::format("{} was not open\n",
+                                     output_filename.string());
     }
     catch (const std::exception& ex)
     {
