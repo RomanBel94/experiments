@@ -16,6 +16,8 @@ project(Experiments
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
     add_compile_options(/utf-8)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
+    add_compile_options(-Wall)
 endif()
 
 add_executable(myStrlen ${CMAKE_CURRENT_SOURCE_DIR}/src/myStrlen.c)
