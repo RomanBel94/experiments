@@ -170,6 +170,8 @@ static constexpr Config::digit_t nine{
 
     // clang-format on
 public:
+    Renderer() { clear_buffer(); }
+
     Config::digit_buffer_t get_buffer() const noexcept { return m_buffer; }
 
     void draw(std::size_t num)
@@ -194,7 +196,7 @@ public:
     }
 
     // draw buffer in console
-    void display(std::ostream& stream) const noexcept
+    void display(std::ostream& stream = std::cout) const noexcept
     {
         std::ranges::for_each(m_buffer,
                               [&stream](const auto& row)
@@ -256,17 +258,31 @@ int main(int argc, char* argv[])
         Renderer render;
 
         render.draw(argv[1]);
-        render.display(std::cout);
+        render.display();
+        render.clear_buffer();
 
         std::filesystem::path output_filename("numberRenderer_test_output.txt");
         if (std::ofstream out(output_filename); out.is_open())
         {
-            render.draw(1488);
+            render.draw(16101994UL);
             render.display(out);
+            render.clear_buffer();
         }
         else
             std::cerr << std::format("{} was not open\n",
                                      output_filename.string());
+
+#ifdef __linux
+        std::filesystem::path null_file("/dev/null");
+        if (std::ofstream out(null_file, std::ios::app); out.is_open())
+        {
+            render.draw(1488);
+            render.display(out);
+            render.clear_buffer();
+        }
+        else
+            std::cerr << std::format("{} was not open\n", null_file.string());
+#endif
     }
     catch (const std::exception& ex)
     {
