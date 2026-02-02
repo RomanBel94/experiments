@@ -18,6 +18,8 @@ enum class TokenType : unsigned char
     TOKEN_DOUBLE_DIVIDER,
     TOKEN_NEWLINE,
     TOKEN_OPERATOR,
+    TOKEN_MANOUVERE,
+    TOKEN_NUMBER,
     NUM_TOKENS
 };
 
@@ -80,6 +82,12 @@ private:
             break;
         case TokenType::TOKEN_OPERATOR:
             ret = "TOKEN_OPERATOR";
+            break;
+        case TokenType::TOKEN_MANOUVERE:
+            ret = "TOKEN_MANOUVERE";
+            break;
+        case TokenType::TOKEN_NUMBER:
+            ret = "TOKEN_NUMBER";
             break;
         }
         return ret;
@@ -163,6 +171,10 @@ private:
                 type = TokenType::TOKEN_DOUBLE_DIVIDER;
             else if (temp == "=")
                 type = TokenType::TOKEN_OPERATOR;
+            else if (temp.starts_with("M_"))
+                type = TokenType::TOKEN_MANOUVERE;
+            else if (std::ranges::all_of(temp, ::isdigit))
+                type = TokenType::TOKEN_NUMBER;
 
             return Token(temp, current_line, current_pos, type);
         }
