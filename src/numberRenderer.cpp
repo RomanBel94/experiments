@@ -9,6 +9,7 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <exception>
@@ -218,7 +219,6 @@ private:
 
     void _draw_impl(std::string_view num) noexcept
     {
-        clear_buffer();
         _write_buffer(m_buffer, num);
     }
 
