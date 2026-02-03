@@ -244,6 +244,12 @@ private:
     }
 };
 
+std::ostream& operator<<(std::ostream& stream, const Renderer& render)
+{
+    render.display(stream);
+    return stream;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc != 2)
@@ -259,6 +265,9 @@ int main(int argc, char* argv[])
 
         render.draw(argv[1]);
         render.display();
+        render.clear_buffer();
+        render.draw(777);
+        std::cout << render;
         render.clear_buffer();
 
         std::filesystem::path output_filename("numberRenderer_test_output.txt");
