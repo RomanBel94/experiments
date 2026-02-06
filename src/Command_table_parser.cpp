@@ -283,6 +283,7 @@ private:
     {
         std::string key;
         std::string value;
+        bool active = true;
 
         void add_key(const std::string& str) { key = str; }
         void add_value(const std::string& str) { value = str; }
@@ -304,10 +305,9 @@ private:
 
     void _parse_header(token_iterator_t& it)
     {
-        while (it->type() != TokenType::TOKEN_KEYWORD)
+        while (m_header_parsing_context.active)
         {
             _process_header_key(it);
-            ++it;
         }
     }
 
@@ -327,6 +327,7 @@ private:
             return;
         }
         case TokenType::TOKEN_KEYWORD:
+            m_header_parsing_context.active = false;
             return;
         default:
             _throw_unexpected_token(it);
@@ -353,6 +354,7 @@ private:
         {
         case TokenType::TOKEN_NEWLINE:
             m_header.emplace_back(m_header_parsing_context.commit_unit());
+            ++it;
             return;
         default:
             _throw_unexpected_token(it);
