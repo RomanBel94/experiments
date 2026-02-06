@@ -93,6 +93,9 @@ public:
         case TokenType::TOKEN_KEYWORD:
             ret = "TOKEN_KEYWORD";
             break;
+        case TokenType::TOKEN_NUMBER:
+            ret = "TOKEN_NUMBER";
+            break;
         }
         return ret;
     }
@@ -366,7 +369,7 @@ public:
 };
 
 CommandTableParser::CommandTableParser(const fs::path& input)
-    : m_command_table_path(input), m_header() {};
+    : m_command_table_path(input), m_header(){};
 
 void CommandTableParser::parse()
 {
