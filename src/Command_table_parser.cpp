@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <deque>
 #include <filesystem>
 #include <format>
@@ -10,17 +11,20 @@
 
 namespace fs = std::filesystem;
 
+using namespace std::literals;
+
 enum class TokenType : unsigned char
 {
     TOKEN_UNDEF,
     TOKEN_STRING,
+    TOKEN_QUOTED_STRING,
     TOKEN_SOLO_DIVIDER,
     TOKEN_DOUBLE_DIVIDER,
     TOKEN_NEWLINE,
     TOKEN_OPERATOR,
     TOKEN_MANOUVERE,
     TOKEN_NUMBER,
-    NUM_TOKENS
+    TOKEN_KEYWORD,
 };
 
 class Token
@@ -28,13 +32,13 @@ class Token
 public:
     Token(const std::string_view value, std::size_t line = 1,
           std::size_t pos = 1, TokenType type = TokenType::TOKEN_UNDEF)
-        : value{value}, line{line}, pos{pos - value.size()}, type{type}
+        : m_value{value}, m_line{line}, m_pos{pos - value.size()}, m_type{type}
     {
     }
 
     Token(char ch, std::size_t line = 1, std::size_t pos = 1,
           TokenType type = TokenType::TOKEN_UNDEF)
-        : value{1, ch}, line{line}, pos{pos - 1}, type{type}
+        : m_value{1, ch}, m_line{line}, m_pos{pos - 1}, m_type{type}
     {
     }
 
@@ -42,34 +46,34 @@ public:
     {
         return std::format(
             "Value: {:<35}line: {:<10}pos: {:<10} type: {}",
-            ((value == "\x1\n" || value == "\n") ? "\\n" : value), line, pos,
-            _get_type_string());
+            ((m_value == "\x1\n" || m_value == "\n") ? "\\n" : m_value), m_line,
+            m_pos, get_type_string());
     }
+
+    TokenType type() const noexcept { return m_type; }
+    std::string value() const noexcept { return m_value; }
 
     auto operator<=>(const Token&) const = default;
 
     bool operator==(const std::string_view rhs) const noexcept
     {
-        return value == rhs;
+        return m_value == rhs;
     }
 
-private:
-    std::string value;
-    std::size_t line;
-    std::size_t pos;
-    TokenType type;
-
-    std::string_view _get_type_string() const
+    std::string_view get_type_string() const
     {
         std::string_view ret;
 
-        switch (type)
+        switch (m_type)
         {
         case TokenType::TOKEN_UNDEF:
             ret = "TOKEN_UNDEF";
             break;
         case TokenType::TOKEN_STRING:
             ret = "TOKEN_STRING";
+            break;
+        case TokenType::TOKEN_QUOTED_STRING:
+            ret = "TOKEN_QUOTED_STRING";
             break;
         case TokenType::TOKEN_SOLO_DIVIDER:
             ret = "TOKEN_SOLO_DIVIDER";
@@ -86,12 +90,18 @@ private:
         case TokenType::TOKEN_MANOUVERE:
             ret = "TOKEN_MANOUVERE";
             break;
-        case TokenType::TOKEN_NUMBER:
-            ret = "TOKEN_NUMBER";
+        case TokenType::TOKEN_KEYWORD:
+            ret = "TOKEN_KEYWORD";
             break;
         }
         return ret;
     }
+
+private:
+    std::string m_value;
+    std::size_t m_line;
+    std::size_t m_pos;
+    TokenType m_type;
 };
 
 class CommandTableLexer
@@ -109,6 +119,11 @@ private:
         std::size_t current_pos{1};
 
         std::ifstream input_file;
+
+        std::array<std::string_view, 12> keywords{
+            "COS"sv,       "interface"sv,  "Main"sv,    "objects"sv,
+            "Component"sv, "Components"sv, "Command"sv, "Commands"sv,
+            "End"sv,       "of"sv,         "command"sv, "table"sv};
 
         void open_file(const fs::path& filepath)
         {
@@ -152,7 +167,7 @@ private:
             temp += get();
 
             return Token(temp, current_line, current_pos,
-                         TokenType::TOKEN_STRING);
+                         TokenType::TOKEN_QUOTED_STRING);
         }
 
         Token process_text() noexcept
@@ -175,6 +190,8 @@ private:
                 type = TokenType::TOKEN_MANOUVERE;
             else if (std::ranges::all_of(temp, ::isdigit))
                 type = TokenType::TOKEN_NUMBER;
+            else if (std::ranges::find(keywords, temp) != keywords.cend())
+                type = TokenType::TOKEN_KEYWORD;
 
             return Token(temp, current_line, current_pos, type);
         }
@@ -221,15 +238,15 @@ void CommandTableLexer::extract_tokens(const fs::path& filepath)
         }
         else if (m_lexer_context.peek() == '\n') // found new line
         {
-            m_tokens.push_back(m_lexer_context.process_newline());
+            m_tokens.emplace_back(m_lexer_context.process_newline());
         }
         else if (m_lexer_context.peek() == '\"') // read quoted text
         {
-            m_tokens.push_back(m_lexer_context.process_quoted_text());
+            m_tokens.emplace_back(m_lexer_context.process_quoted_text());
         }
         else if (_is_text(m_lexer_context.peek())) // read word
         {
-            m_tokens.push_back(m_lexer_context.process_text());
+            m_tokens.emplace_back(m_lexer_context.process_text());
         }
     }
 
@@ -243,25 +260,107 @@ void CommandTableLexer::extract_tokens(const fs::path& filepath)
 
 class CommandTableParser final
 {
-    using header_t =
-        std::deque<std::pair<const std::string, const std::string>>;
-
 public:
     CommandTableParser(const fs::path& input);
 
     void parse();
-
-    const header_t& get_header() const noexcept { return m_header; }
 
 private:
     fs::path m_command_table_path;
 
     CommandTableLexer m_lexer;
 
+    using header_unit_t = std::pair<const std::string, const std::string>;
+    using header_t = std::deque<header_unit_t>;
+    using token_iterator_t = decltype(m_lexer.get_tokens().cbegin());
+
     header_t m_header{};
     // cos_interface_t m_cos_interface
     // components_t m_component
     // commands_t m_commands
+
+    struct HeaderParsingContext
+    {
+        std::string key;
+        std::string value;
+
+        void add_key(const std::string& str) { key = str; }
+        void add_value(const std::string& str) { value = str; }
+
+        [[nodiscard]] header_unit_t commit_unit()
+        {
+            header_unit_t unit{key, value};
+            key.clear();
+            value.clear();
+            return unit;
+        }
+    } m_header_parsing_context;
+
+    void _throw_unexpected_token(token_iterator_t& it)
+    {
+        throw std::runtime_error(
+            std::format("[FATAL]:\tUnexpected token:\n{}\n", it->to_string()));
+    }
+
+    void _parse_header(token_iterator_t& it)
+    {
+        while (it->type() != TokenType::TOKEN_KEYWORD)
+        {
+            _process_header_key(it);
+            ++it;
+        }
+    }
+
+    void _process_header_key(token_iterator_t& it)
+    {
+        // skip empty lines
+        while (it->type() == TokenType::TOKEN_NEWLINE)
+            ++it;
+
+        switch (it->type())
+        {
+        case TokenType::TOKEN_STRING:
+        {
+            m_header_parsing_context.add_key(it->value());
+            ++it;
+            _process_header_value(it);
+            return;
+        }
+        case TokenType::TOKEN_KEYWORD:
+            return;
+        default:
+            _throw_unexpected_token(it);
+        }
+    }
+
+    void _process_header_value(token_iterator_t& it)
+    {
+        switch (it->type())
+        {
+        case TokenType::TOKEN_QUOTED_STRING:
+            m_header_parsing_context.add_value(it->value());
+            ++it;
+            _finish_header_unit(it);
+            return;
+        default:
+            _throw_unexpected_token(it);
+        }
+    }
+
+    void _finish_header_unit(token_iterator_t& it)
+    {
+        switch (it->type())
+        {
+        case TokenType::TOKEN_NEWLINE:
+            m_header.emplace_back(m_header_parsing_context.commit_unit());
+            return;
+        default:
+            _throw_unexpected_token(it);
+        }
+    }
+
+public:
+    const header_t& get_header() const noexcept { return m_header; }
 };
 
 CommandTableParser::CommandTableParser(const fs::path& input)
@@ -276,6 +375,13 @@ void CommandTableParser::parse()
         throw std::runtime_error("[FATAL] Tokens list is empty!");
 
     auto current_token = m_lexer.get_tokens().cbegin();
+
+    _parse_header(current_token);
+
+    std::cout << "Collected header tokens:\n";
+    std::ranges::for_each(
+        m_header, [](const auto& pair)
+        { std::cout << std::format("{:<40}{}\n", pair.first, pair.second); });
 }
 
 int main()
@@ -284,17 +390,27 @@ int main()
     fs::path command_table_output = "Command_table_output";
 
     // DEBUG
-    CommandTableLexer lexer;
-    std::clog << std::format("Start parsing {}\n",
-                             command_table_input.string());
-    lexer.extract_tokens(command_table_input);
+    // CommandTableLexer lexer;
+    // std::clog << std::format("Start parsing {}\n",
+    //                          command_table_input.string());
+    // lexer.extract_tokens(command_table_input);
 
-    // DEBUG
-    std::clog << std::format("Start writing {}\n",
-                             command_table_output.string());
-    std::ofstream output_file{command_table_output};
-    for (const auto& token : lexer.get_tokens())
-        output_file << token.to_string() << '\n';
+    // std::clog << std::format("Start writing {}\n",
+    //                         command_table_output.string());
+    // std::ofstream output_file{command_table_output};
+    // for (const auto& token : lexer.get_tokens())
+    //    output_file << token.to_string() << '\n';
+
+    try
+    {
+        CommandTableParser parser(command_table_input);
+        parser.parse();
+    }
+    catch (const std::exception& ex)
+    {
+        std::cerr << ex.what() << "\n";
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }
