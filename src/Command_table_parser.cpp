@@ -30,13 +30,13 @@ enum class TokenType : unsigned char
 class Token
 {
 public:
-    Token(const std::string_view value, std::size_t line = 1,
-          std::size_t pos = 1, TokenType type = TokenType::TOKEN_UNDEF)
+    Token(const std::string_view value, std::size_t line, std::size_t pos,
+          TokenType type)
         : m_value{value}, m_line{line}, m_pos{pos - value.size()}, m_type{type}
     {
     }
 
-    Token(char ch, std::size_t line = 1, std::size_t pos = 1,
+    Token(char ch, std::size_t line, std::size_t pos,
           TokenType type = TokenType::TOKEN_UNDEF)
         : m_value{1, ch}, m_line{line}, m_pos{pos - 1}, m_type{type}
     {
@@ -46,6 +46,14 @@ public:
     {
         return std::format(
             "Value: {:<35}line: {:<10}pos: {:<10} type: {}",
+            ((m_value == "\x1\n" || m_value == "\n") ? "\\n" : m_value), m_line,
+            m_pos, get_type_string());
+    }
+
+    std::string to_debug_string() const noexcept
+    {
+        return std::format(
+            "Value: {}\nLine:  {}\nPos:   {}\nType:  {}",
             ((m_value == "\x1\n" || m_value == "\n") ? "\\n" : m_value), m_line,
             m_pos, get_type_string());
     }
@@ -302,8 +310,8 @@ private:
 
     void _throw_unexpected_token(token_iterator_t& it)
     {
-        throw std::runtime_error(
-            std::format("[FATAL]:\tUnexpected token:\n{}\n", it->to_string()));
+        throw std::runtime_error(std::format("[FATAL] Unexpected token\n\n{}\n",
+                                             it->to_debug_string()));
     }
 
     void _parse_header(token_iterator_t& it)
