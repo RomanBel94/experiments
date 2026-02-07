@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <cstdlib>
 #include <deque>
+#include <exception>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -388,31 +390,43 @@ void CommandTableParser::parse()
         { std::cout << std::format("{:<40}{}\n", pair.first, pair.second); });
 }
 
-int main()
+void test_Lexer()
 {
     fs::path command_table_input = "Command_table";
     fs::path command_table_output = "Command_table_output";
 
     // DEBUG
-    // CommandTableLexer lexer;
-    // std::clog << std::format("Start parsing {}\n",
-    //                          command_table_input.string());
-    // lexer.extract_tokens(command_table_input);
+    CommandTableLexer lexer;
+    std::clog << std::format("Start parsing {}\n",
+                             command_table_input.string());
+    lexer.extract_tokens(command_table_input);
 
-    // std::clog << std::format("Start writing {}\n",
-    //                         command_table_output.string());
-    // std::ofstream output_file{command_table_output};
-    // for (const auto& token : lexer.get_tokens())
-    //    output_file << token.to_string() << '\n';
+    std::clog << std::format("Start writing {}\n",
+                             command_table_output.string());
+    std::ofstream output_file{command_table_output};
+    for (const auto& token : lexer.get_tokens())
+        output_file << token.to_string() << '\n';
+}
 
+void test_Parser()
+{
+    fs::path command_table_input = "Command_table";
+    fs::path command_table_output = "Command_table_output";
+
+    CommandTableParser parser(command_table_input);
+    parser.parse();
+}
+
+int main()
+{
     try
     {
-        CommandTableParser parser(command_table_input);
-        parser.parse();
+        test_Lexer();
+        // test_Parser();
     }
-    catch (const std::exception& ex)
+    catch (std::exception const& ex)
     {
-        std::cerr << ex.what() << "\n";
+        std::cerr << ex.what() << '\n';
         return EXIT_FAILURE;
     }
 
