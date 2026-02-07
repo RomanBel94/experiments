@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <deque>
 #include <filesystem>
 #include <format>
@@ -30,32 +31,31 @@ enum class TokenType : unsigned char
 class Token
 {
 public:
-    Token(const std::string_view value, std::size_t line, std::size_t pos,
-          TokenType type)
-        : m_value{value}, m_line{line}, m_pos{pos - value.size()}, m_type{type}
+    Token(std::string&& value, std::size_t line,
+          TokenType type = TokenType::TOKEN_UNDEF)
+        : m_value{std::move(value)}, m_line{line}, m_type{type}
     {
     }
 
-    Token(char ch, std::size_t line, std::size_t pos,
-          TokenType type = TokenType::TOKEN_UNDEF)
-        : m_value{1, ch}, m_line{line}, m_pos{pos - 1}, m_type{type}
+    Token(char ch, std::size_t line, TokenType type = TokenType::TOKEN_UNDEF)
+        : m_value{1, ch}, m_line{line}, m_type{type}
     {
     }
 
     std::string to_string() const noexcept
     {
         return std::format(
-            "Value: {:<35}line: {:<10}pos: {:<10} type: {}",
+            "Value: {:<35}line: {:<10}type: {}",
             ((m_value == "\x1\n" || m_value == "\n") ? "\\n" : m_value), m_line,
-            m_pos, get_type_string());
+            get_type_string());
     }
 
     std::string to_debug_string() const noexcept
     {
         return std::format(
-            "Value: {}\nLine:  {}\nPos:   {}\nType:  {}",
+            "Value: {}\nLine:  {}\nType:  {}",
             ((m_value == "\x1\n" || m_value == "\n") ? "\\n" : m_value), m_line,
-            m_pos, get_type_string());
+            get_type_string());
     }
 
     TokenType type() const noexcept { return m_type; }
@@ -111,7 +111,6 @@ public:
 private:
     std::string m_value;
     std::size_t m_line;
-    std::size_t m_pos;
     TokenType m_type;
 };
 
@@ -127,7 +126,6 @@ private:
     struct LexerContext
     {
         std::size_t current_line{1};
-        std::size_t current_pos{1};
 
         std::ifstream input_file;
 
@@ -145,11 +143,7 @@ private:
         void close_file() noexcept { input_file.close(); }
 
         char peek() noexcept { return input_file.peek(); }
-        char get() noexcept
-        {
-            ++current_pos;
-            return input_file.get();
-        }
+        char get() noexcept { return input_file.get(); }
         bool eof() const noexcept { return input_file.eof(); }
 
         void skip_comment() // skip comments
@@ -157,14 +151,15 @@ private:
             while (peek() != '\n')
                 get();
             get();
+
+            ++current_line;
         }
 
         Token process_newline() noexcept
         {
-            Token result(get(), current_line, current_pos,
-                         TokenType::TOKEN_NEWLINE);
+            Token result(get(), current_line, TokenType::TOKEN_NEWLINE);
+
             ++current_line;
-            current_pos = 1;
             return result;
         }
 
@@ -177,7 +172,7 @@ private:
                 temp += get();
             temp += get();
 
-            return Token(temp, current_line, current_pos,
+            return Token(std::move(temp), current_line,
                          TokenType::TOKEN_QUOTED_STRING);
         }
 
@@ -187,10 +182,8 @@ private:
             TokenType type{TokenType::TOKEN_STRING};
 
             while (!std::isspace(peek()))
-            {
                 temp += get();
-                ++current_pos;
-            }
+
             if (temp == "|")
                 type = TokenType::TOKEN_SOLO_DIVIDER;
             else if (temp == "||")
@@ -204,7 +197,7 @@ private:
             else if (std::ranges::find(keywords, temp) != keywords.cend())
                 type = TokenType::TOKEN_KEYWORD;
 
-            return Token(temp, current_line, current_pos, type);
+            return Token(std::move(temp), current_line, type);
         }
 
     } m_lexer_context;
@@ -317,9 +310,7 @@ private:
     void _parse_header(token_iterator_t& it)
     {
         while (m_header_parsing_context.active)
-        {
             _process_header_key(it);
-        }
     }
 
     void _process_header_key(token_iterator_t& it)
