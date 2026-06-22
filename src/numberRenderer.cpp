@@ -12,14 +12,10 @@
 #include <array>
 #include <cassert>
 #include <cstddef>
-#include <exception>
-#include <filesystem>
 #include <format>
-#include <fstream>
 #include <iostream>
 #include <iterator>
-#include <source_location>
-#include <stdexcept>
+#include <ranges>
 #include <string_view>
 #include <unordered_map>
 
@@ -31,7 +27,7 @@ private:
         static constexpr size_t VERTICAL_SPACE = 1;
         static constexpr size_t HORIZONTAL_SPACE = 1;
         static constexpr size_t DIGIT_NUMBER = 12;
-        static constexpr auto DIGIT_FORMAT = "{:0>12}";
+        static constexpr auto DIGIT_FORMAT = "{:0>{}}";
         static constexpr size_t DIGIT_HEIGHT = 9, DIGIT_WIDTH = 7;
         static constexpr size_t BUFFER_HEIGHT = DIGIT_HEIGHT + 2;
         static constexpr size_t BUFFER_WIDTH = DIGIT_WIDTH * DIGIT_NUMBER +
@@ -171,28 +167,24 @@ static constexpr Config::digit_t nine{
     // clang-format on
 public:
     Renderer() { clear_buffer(); }
-
-    Config::digit_buffer_t get_buffer() const noexcept { return m_buffer; }
+    ~Renderer() = default;
 
     void draw(std::size_t num)
     {
-        _draw_impl(std::format(Config::DIGIT_FORMAT, num));
+        _draw_impl(
+            std::format(Config::DIGIT_FORMAT, num, Config::DIGIT_NUMBER));
     }
 
     void draw(std::string_view num)
     {
-        if (!std::ranges::all_of(num, isdigit))
-            throw std::invalid_argument(
-                std::format("{}: not an unsigned int",
-                            std::source_location::current().function_name()));
-
-        _draw_impl(std::format(Config::DIGIT_FORMAT, num));
+        assert(std::ranges::all_of(num, isdigit));
+        _draw_impl(
+            std::format(Config::DIGIT_FORMAT, num, Config::DIGIT_NUMBER));
     }
 
     void clear_buffer() noexcept
     {
-        std::ranges::for_each(m_buffer,
-                              [](auto& row) { std::ranges::fill(row, ' '); });
+        std::ranges::for_each(m_buffer, [](auto& row) { row.fill(' '); });
     }
 
     // draw buffer in console
@@ -219,28 +211,24 @@ private:
         {'6', char_digits::six},   {'7', char_digits::seven},
         {'8', char_digits::eight}, {'9', char_digits::nine}};
 
-    void _draw_impl(std::string_view num) noexcept
-    {
-        _write_buffer(m_buffer, num);
-    }
+    void _draw_impl(std::string_view num) noexcept { _write_buffer(num); }
 
-    void _write_buffer(Config::digit_buffer_t& buf, std::string_view num)
+    void _write_buffer(std::string_view num)
     {
-        for (size_t i = 0; i < Config::DIGIT_NUMBER; ++i)
+        for (auto i : std::views::iota(0ul, Config::DIGIT_NUMBER))
             _write_digit_to_buffer(
                 numbers.at(num[i]),
                 (Config::DIGIT_WIDTH + Config::HORIZONTAL_SPACE) * i +
                     Config::HORIZONTAL_SPACE,
-                Config::VERTICAL_SPACE, buf);
+                Config::VERTICAL_SPACE);
     }
 
-    void _write_digit_to_buffer(Config::digit_t const& digit,
-                                std::size_t x_offset, std::size_t y_offset,
-                                Config::digit_buffer_t& buffer) noexcept
+    void _write_digit_to_buffer(Config::digit_t const& digit, size_t x_offset,
+                                size_t y_offset) noexcept
     {
-        for (size_t i = 0; i < Config::DIGIT_HEIGHT; ++i)
-            for (size_t j = 0; j < Config::DIGIT_WIDTH; ++j)
-                buffer[y_offset + i][x_offset + j] = digit[i][j];
+        for (auto i : std::views::iota(0ul, Config::DIGIT_HEIGHT))
+            for (auto j : std::views::iota(0ul, Config::DIGIT_WIDTH))
+                m_buffer[y_offset + i][x_offset + j] = digit[i][j];
     }
 };
 
@@ -259,45 +247,10 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    try
-    {
-        Renderer render;
+    Renderer render;
 
-        render.draw(argv[1]);
-        render.display();
-        render.clear_buffer();
-        render.draw(777);
-        std::cout << render;
-        render.clear_buffer();
-
-        std::filesystem::path output_filename("numberRenderer_test_output.txt");
-        if (std::ofstream out(output_filename); out.is_open())
-        {
-            render.draw(16101994UL);
-            render.display(out);
-            render.clear_buffer();
-        }
-        else
-            std::cerr << std::format("{} was not open\n",
-                                     output_filename.string());
-
-#ifdef __linux
-        std::filesystem::path null_file("/dev/null");
-        if (std::ofstream out(null_file, std::ios::app); out.is_open())
-        {
-            render.draw(1488);
-            render.display(out);
-            render.clear_buffer();
-        }
-        else
-            std::cerr << std::format("{} was not open\n", null_file.string());
-#endif
-    }
-    catch (const std::exception& ex)
-    {
-        std::cerr << std::format("{}\n", ex.what());
-        return EXIT_FAILURE;
-    }
+    render.draw(argv[1]);
+    render.display();
 
     return EXIT_SUCCESS;
 }
