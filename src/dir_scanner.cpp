@@ -1,9 +1,10 @@
-#include <cstddef>
+#include <algorithm>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
 #include <format>
 #include <iostream>
+#include <ranges>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -18,19 +19,17 @@ inline void recursive_print_directory(const fs::path& path)
 
 int main(int argc, char** argv)
 {
-    fs::path current_dir;
     std::vector<fs::path> paths;
 
     if (argc == 1)
-        current_dir = fs::current_path();
+        paths.emplace_back(fs::current_path());
     else
-        for (std::size_t i = 1; i < argc; ++i)
+        for (auto i : std::views::iota(1, argc))
             paths.emplace_back(argv[i]);
 
     try
     {
-        for (const auto& path : paths)
-            recursive_print_directory(path);
+        std::ranges::for_each(paths, recursive_print_directory);
     }
     catch (const std::exception& ex)
     {
