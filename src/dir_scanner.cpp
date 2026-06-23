@@ -8,12 +8,13 @@
 #include <vector>
 
 namespace fs = std::filesystem;
+namespace rng = std::ranges;
+namespace views = std::views;
 
 inline void recursive_print_directory(const fs::path& path)
 {
-    std::ranges::for_each(
-        fs::recursive_directory_iterator(path), [](const auto& entry)
-        { std::cout << std::format("{}\n", entry.path().string()); });
+    rng::for_each(fs::recursive_directory_iterator(path), [](const auto& entry)
+                  { std::cout << std::format("{}\n", entry.path().string()); });
 }
 
 int main(int argc, char** argv)
@@ -23,12 +24,12 @@ int main(int argc, char** argv)
     if (argc == 1)
         paths.emplace_back(fs::current_path());
     else
-        for (auto i : std::views::iota(1, argc))
-            paths.emplace_back(argv[i]);
+        rng::for_each(views::iota(1, argc),
+                      [&paths, argv](int i) { paths.emplace_back(argv[i]); });
 
     try
     {
-        std::ranges::for_each(paths, recursive_print_directory);
+        rng::for_each(paths, recursive_print_directory);
     }
     catch (const std::exception& ex)
     {
