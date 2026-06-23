@@ -11,10 +11,9 @@ namespace fs = std::filesystem;
 
 inline void recursive_print_directory(const fs::path& path)
 {
-    for (const auto& file : fs::recursive_directory_iterator(path))
-    {
-        std::cout << std::format("{}\n", file.path().string());
-    }
+    std::ranges::for_each(
+        fs::recursive_directory_iterator(path), [](const auto& entry)
+        { std::cout << std::format("{}\n", entry.path().string()); });
 }
 
 int main(int argc, char** argv)
