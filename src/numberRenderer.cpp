@@ -19,6 +19,9 @@
 #include <string_view>
 #include <unordered_map>
 
+namespace rng = std::ranges;
+namespace views = std::views;
+
 class Renderer final
 {
 private:
@@ -177,27 +180,25 @@ public:
 
     void draw(std::string_view num)
     {
-        assert(std::ranges::all_of(num, isdigit));
+        assert(rng::all_of(num, isdigit));
         _draw_impl(
             std::format(Config::DIGIT_FORMAT, num, Config::DIGIT_NUMBER));
     }
 
     void clear_buffer() noexcept
     {
-        std::ranges::for_each(m_buffer, [](auto& row) { row.fill(' '); });
+        rng::for_each(m_buffer, [](auto& row) { row.fill(' '); });
     }
 
     // draw buffer in console
     void display(std::ostream& stream = std::cout) const noexcept
     {
-        std::ranges::for_each(m_buffer,
-                              [&stream](const auto& row)
-                              {
-                                  std::ranges::copy(
-                                      row, std::ostream_iterator<char>(stream));
-
-                                  stream << '\n';
-                              });
+        rng::for_each(m_buffer,
+                      [&stream](const auto& row)
+                      {
+                          rng::copy(row, std::ostream_iterator<char>(stream));
+                          stream << '\n';
+                      });
     }
 
 private:
@@ -215,19 +216,23 @@ private:
 
     void _write_buffer(std::string_view num)
     {
-        for (auto i : std::views::iota(0ul, Config::DIGIT_NUMBER))
-            _write_digit_to_buffer(
-                numbers.at(num[i]),
-                (Config::DIGIT_WIDTH + Config::HORIZONTAL_SPACE) * i +
-                    Config::HORIZONTAL_SPACE,
-                Config::VERTICAL_SPACE);
+        rng::for_each(views::iota(0ul, Config::DIGIT_NUMBER),
+                      [&](auto i)
+                      {
+                          _write_digit_to_buffer(
+                              numbers.at(num[i]),
+                              (Config::DIGIT_WIDTH + Config::HORIZONTAL_SPACE) *
+                                      i +
+                                  Config::HORIZONTAL_SPACE,
+                              Config::VERTICAL_SPACE);
+                      });
     }
 
     void _write_digit_to_buffer(Config::digit_t const& digit, size_t x_offset,
                                 size_t y_offset) noexcept
     {
-        for (auto i : std::views::iota(0ul, Config::DIGIT_HEIGHT))
-            for (auto j : std::views::iota(0ul, Config::DIGIT_WIDTH))
+        for (auto i : views::iota(0ul, Config::DIGIT_HEIGHT))
+            for (auto j : views::iota(0ul, Config::DIGIT_WIDTH))
                 m_buffer[y_offset + i][x_offset + j] = digit[i][j];
     }
 };
