@@ -1,15 +1,20 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstdint>
+#include <format>
 #include <iomanip>
 #include <iostream>
+#include <ranges>
 #include <regex>
+#include <source_location>
 #include <sstream>
 
 class Timer final
 {
     using clock = std::chrono::steady_clock;
     using time_point = std::chrono::steady_clock::time_point;
-    using duration = std::chrono::duration<double, std::milli>;
+    using duration = std::chrono::duration<double>;
 
 public:
     template <class Callable, typename... Args>
@@ -17,11 +22,10 @@ public:
     {
         time_point start{clock::now()};
         func_object(std::forward<Args>(args)...);
-        time_point end{clock::now()};
-        duration time_passed{std::chrono::duration_cast<duration>(end - start)};
+        duration time_passed{
+            std::chrono::duration_cast<duration>(clock::now() - start)};
 
-        std::clog << "Time passed: " << std::fixed << std::setprecision(5)
-                  << time_passed.count() << "ms\n";
+        std::clog << std::format("Time passed: {:.5}s\n", time_passed.count());
     }
 
     template <typename ReturnType, class Callable, typename... Args>
@@ -29,11 +33,10 @@ public:
     {
         time_point start{clock::now()};
         ReturnType temp = func_object(std::forward<Args>(args)...);
-        time_point end{clock::now()};
-        duration time_passed{std::chrono::duration_cast<duration>(end - start)};
+        duration time_passed{
+            std::chrono::duration_cast<duration>(clock::now() - start)};
 
-        std::clog << "Time passed: " << std::fixed << std::setprecision(5)
-                  << time_passed.count() << "ms\n";
+        std::clog << std::format("Time passed: {:.5}s\n", time_passed.count());
 
         return temp;
     }
@@ -59,7 +62,9 @@ public:
     {
         uint8_t current_octet{0};
         for (size_t i{0}; i < 4; ++i)
-            set_octet(i, current_octet | byte_view >> i * 8);
+            std::ranges::for_each(
+                std::views::iota(0, 4), [this, current_octet, byte_view](auto i)
+                { set_octet(i, current_octet | byte_view >> i * 8); });
     }
 
     IPaddress() = default;
@@ -71,15 +76,8 @@ public:
 
     inline std::string to_string() const noexcept
     {
-        std::ostringstream result;
-        for (int i{3}; i >= 0; --i)
-        {
-            // cast is used for correct output for digits
-            result << static_cast<uint16_t>(get_octet(i));
-            if (i > 0)
-                result << '.';
-        }
-        return result.str();
+        return std::format("{}.{}.{}.{}", get_octet(3), get_octet(2),
+                           get_octet(1), get_octet(0));
     }
 
     inline uint32_t to_uint32() const noexcept
@@ -114,9 +112,9 @@ public:
         std::regex ip_regex{IP_REGEX};
         if (!std::regex_match(addr, ip_regex))
         {
-            std::ostringstream message;
-            message << __FUNCTION__ << "(" << addr << "): bad ip address";
-            throw std::invalid_argument{message.str()};
+            throw std::invalid_argument{std::format(
+                "{}({}): bad ip address",
+                std::source_location::current().function_name(), addr)};
         }
     }
 
@@ -163,8 +161,8 @@ inline void show_octets(const IPaddress& addr)
 {
     for (int i{3}; i >= 0; --i)
     {
-        std::cout << "Octet" << i << ": (" << std::setw(3) << std::right
-                  << static_cast<uint16_t>(addr.get_octet(i)) << ") ";
+        std::cout << std::format("Octet {}: ({:>3}) ", i,
+                                 static_cast<uint16_t>(addr.get_octet(i)));
         show_bits(addr.get_octet(i));
         std::cout << '\n';
     }
@@ -172,7 +170,7 @@ inline void show_octets(const IPaddress& addr)
 
 inline void show_full(const IPaddress& addr)
 {
-    std::cout << "Full address: (" << addr.to_uint32() << ") ";
+    std::cout << std::format("Full address: ({}) ", addr.to_uint32());
     show_bits(addr.to_uint32());
 }
 
