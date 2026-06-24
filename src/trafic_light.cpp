@@ -6,7 +6,6 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
-#include <utility>
 
 class TraficLightManager
 {
@@ -32,47 +31,39 @@ private:
     void _print_current_configuration() const noexcept;
 
     // Reads config file and fills configuration map.
-    void _read_configuration(std::ifstream& config_file) const noexcept;
+    void _read_configuration(std::ifstream& config_file) const;
 
     // Print current color.
     void _show_color(const std::string& color) const noexcept;
 
     // Common variables.
-    static const std::string light_icon;
+    inline static const std::string light_icon{"***"};
     static const std::unordered_map<std::string, const std::string> colors;
 
     // Configuration hashmap of this trafic light.
     mutable std::unordered_map<std::string, int> m_configuration;
 };
 
-std::string operator""_s(char const* const str, size_t size)
-{
-    return std::string(str);
-}
-
-const std::string TraficLightManager::light_icon{"***\n"_s};
-
 const std::unordered_map<std::string, const std::string>
     TraficLightManager::colors{
-        {"Green"_s, "\033[92m"_s}, {"YellowToRed"_s, "\033[93m"_s},
-        {"Red"_s, "\033[91m"_s},   {"YellowToGreen"_s, "\033[93m"_s},
-        {"White"_s, "\033[0m"_s},
+        {"Green", "\033[92m"}, {"YellowToRed", "\033[93m"},
+        {"Red", "\033[91m"},   {"YellowToGreen", "\033[93m"},
+        {"White", "\033[0m"},
     };
 
 // Reads configuration file and fills self configuration hashmap,
 // if can't read configuration file applies default values.
 TraficLightManager::TraficLightManager() noexcept
-    : m_configuration{{"Green"_s, 1},
-                      {"YellowToRed"_s, 1},
-                      {"Red"_s, 1},
-                      {"YellowToGreen"_s, 1}}
+    : m_configuration{
+          {"Green", 1}, {"YellowToRed", 1}, {"Red", 1}, {"YellowToGreen", 1}}
 {
-    std::ifstream configuration_file("trafic_light_config.txt");
-    if (!configuration_file)
+
+    if (std::ifstream configuration_file("trafic_light_config.txt");
+        configuration_file)
+        _read_configuration(configuration_file);
+    else
         std::cerr
             << "Config file not open! Default delays (1sec) are applied.\n";
-    else
-        _read_configuration(configuration_file);
 
     _print_current_configuration();
 }
@@ -86,14 +77,14 @@ void TraficLightManager::run() const noexcept
         if (counter++ % 5 == 0)
             std::cout << "[INFO] Press Ctrl+C to stop the traffic light\n";
 
-        std::for_each(
-            m_configuration.begin(), m_configuration.end(),
+        std::ranges::for_each(
+            m_configuration,
             [this](const std::pair<const std::string, int>& config_element)
             { this->_show_color(config_element.first); });
     }
 }
 
-// Stops running this thread for given nuber of seconds.
+// Pauses running this thread for given nuber of seconds.
 void TraficLightManager::_sleep(const int seconds) noexcept
 {
     std::this_thread::sleep_for(std::chrono::seconds(seconds));
@@ -106,7 +97,7 @@ void TraficLightManager::_print_current_configuration() const noexcept
 
     std::ranges::for_each(
         m_configuration,
-        [this](const std::pair<const std::string, int>& config_element)
+        [](const std::pair<const std::string, int>& config_element)
         {
             std::cout << std::format("[INFO] {:<15} : {}sec\n",
                                      config_element.first,
@@ -115,26 +106,22 @@ void TraficLightManager::_print_current_configuration() const noexcept
 }
 
 // Reads config file and fills configuration map.
-void TraficLightManager::_read_configuration(
-    std::ifstream& config_file) const noexcept
+void TraficLightManager::_read_configuration(std::ifstream& config_file) const
 {
-    std::clog << "[INFO] Loading";
+    std::clog << "[INFO] Loading config\n";
     std::string parameter;
 
     while (config_file >> parameter)
     {
         config_file >> m_configuration[parameter];
-        std::clog << ".";
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-
-    std::clog << '\n';
 }
 
 // Shows current color on screen
 void TraficLightManager::_show_color(const std::string& color) const noexcept
 {
-    std::cout << colors.at(color) << light_icon << colors.at("White"_s);
+    std::cout << std::format("{}{}{}\n", colors.at(color), light_icon,
+                             colors.at("White"));
     _sleep(m_configuration.at(color));
 }
 
