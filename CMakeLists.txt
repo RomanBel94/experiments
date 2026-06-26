@@ -63,12 +63,6 @@ add_custom_command(TARGET trafic_light
 
 add_executable(ip_address_parser ${CMAKE_CURRENT_SOURCE_DIR}/src/ip_address_parser.cpp)
 
-add_executable(Command_table_parser ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_table_parser.cpp)
-add_custom_command(TARGET Command_table_parser
-    POST_BUILD
-    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/Command_table ${CMAKE_CURRENT_BINARY_DIR}
-)
-
 add_executable(hashgen ${CMAKE_CURRENT_SOURCE_DIR}/src/hashgen.cpp)
 
 add_executable(er_kmac_generator ${CMAKE_CURRENT_SOURCE_DIR}/src/er_kmac_generator.cpp)
