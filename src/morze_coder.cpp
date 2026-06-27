@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <exception>
+#include <format>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -81,7 +82,7 @@ int main(int argc, char* argv[])
     }
     catch (const std::exception& ex)
     {
-        std::cout << ex.what();
+        std::cout << std::format("{}\n", ex.what());
         return EXIT_FAILURE;
     }
 
