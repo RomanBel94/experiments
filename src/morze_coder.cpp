@@ -4,17 +4,35 @@
 #include <string>
 #include <unordered_map>
 
-class morze_coder final
+class NonConstructible
+{
+private:
+    NonConstructible() = delete;
+};
+
+class NonCopyable
+{
+private:
+    NonCopyable(const NonCopyable&) = delete;
+    NonCopyable& operator=(const NonCopyable&) = delete;
+};
+
+class NonMovable
+{
+private:
+    NonMovable(NonMovable&&) noexcept = delete;
+    NonMovable&& operator=(NonMovable&&) noexcept = delete;
+};
+
+class StaticClass : NonConstructible, NonCopyable, NonMovable
+{
+};
+
+class morze_coder final : StaticClass
 {
 private:
     static const std::unordered_map<unsigned char, const std::string>
         translation_table;
-
-    morze_coder() = delete;
-    morze_coder(const morze_coder&) = delete;
-    morze_coder& operator=(const morze_coder&) = delete;
-    morze_coder(morze_coder&&) noexcept = delete;
-    morze_coder&& operator=(morze_coder&&) noexcept = delete;
 
 public:
     static std::string encode(const std::string& str);
