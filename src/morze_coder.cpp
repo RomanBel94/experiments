@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -9,6 +9,12 @@ class morze_coder final
 private:
     static const std::unordered_map<unsigned char, const std::string>
         translation_table;
+
+    morze_coder() = delete;
+    morze_coder(const morze_coder&) = delete;
+    morze_coder& operator=(const morze_coder&) = delete;
+    morze_coder(morze_coder&&) noexcept = delete;
+    morze_coder&& operator=(morze_coder&&) noexcept = delete;
 
 public:
     static std::string encode(const std::string& str);
@@ -33,13 +39,12 @@ const std::unordered_map<unsigned char, const std::string>
 
 std::string morze_coder::encode(const std::string& str)
 {
-    std::string result{};
+    std::string result;
+    result.reserve(str.size() * 6);
 
     std::ranges::for_each(
-        str,
-        [&result](const auto ch) {
-            result += morze_coder::translation_table.at(std::tolower(ch)) + ' ';
-        });
+        str, [&result](const auto ch)
+        { result += translation_table.at(std::tolower(ch)) + ' '; });
 
     return result;
 }
@@ -52,6 +57,15 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    std::cout << morze_coder::encode(argv[1]) << std::endl;
+    try
+    {
+        std::cout << morze_coder::encode(argv[1]) << std::endl;
+    }
+    catch (const std::exception& ex)
+    {
+        std::cout << ex.what();
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }
