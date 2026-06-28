@@ -30,6 +30,8 @@ add_executable(templateFactorial ${CMAKE_CURRENT_SOURCE_DIR}/src/templateFactori
 
 add_executable(twoSum ${CMAKE_CURRENT_SOURCE_DIR}/src/twoSum.cpp)
 
+add_executable(twoPolynomsAdding ${CMAKE_CURRENT_SOURCE_DIR}/src/twoPolynomsAdding.cpp)
+
 add_library(Clib 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libCforExternC/Clib.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libCforExternC/Clib.h

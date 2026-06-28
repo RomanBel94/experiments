@@ -1,9 +1,11 @@
 #include <algorithm>
+#include <format>
 #include <fstream>
 #include <functional>
 #include <iostream>
 #include <list>
 #include <map>
+#include <ranges>
 #include <stdexcept>
 #include <string>
 
@@ -25,7 +27,7 @@ struct Token
     const TokenType type;
 
     explicit Token(const TokenType type, const int value = 0)
-        : type(type), value(value)
+        : value(value), type(type)
     {
     }
     ~Token() = default;
@@ -69,7 +71,6 @@ private:
     void add_token();
     void add_eof();
     void reset_current_token();
-    bool is_number(const std::string& token);
 
 public:
     Lexer();
@@ -80,8 +81,8 @@ public:
 };
 
 Lexer::Lexer()
-    : current_token_type(TokenType::Undefined), current_token_value(""),
-      current_char('\0'), current_line(1)
+    : current_token_value(""), current_line(1),
+      current_token_type(TokenType::Undefined), current_char('\0')
 {
     input_file.open("polynoms.txt", std::ios::in);
     if (!input_file.is_open())
@@ -124,12 +125,12 @@ void Lexer::define_token_type()
 {
     if (current_token_value == "\n")
         current_token_type = TokenType::Newline;
-    else if (is_number(current_token_value))
+    else if (std::ranges::all_of(current_token_value, ::isdigit))
         current_token_type = TokenType::Number;
     else
-        throw std::runtime_error("[FATAL] Invalid token \"" +
-                                 current_token_value +
-                                 "\" at line: " + std::to_string(current_line));
+        throw std::runtime_error(
+            std::format("[FATAL] Invalid token \"{}\" at line: {}",
+                        current_token_value, std::to_string(current_line)));
 }
 
 void Lexer::add_token()
@@ -159,15 +160,6 @@ void Lexer::reset_current_token()
     current_token_value.clear();
 }
 
-bool Lexer::is_number(const std::string& token)
-{
-    for (char symbol : token)
-        if (!isdigit(symbol))
-            return false;
-
-    return true;
-}
-
 inline void Lexer::parse()
 {
     while (current_token_type != TokenType::Eof)
@@ -183,11 +175,13 @@ inline const std::list<Token>& Lexer::get_tokens() const { return tokens; }
 
 class Parser
 {
+    using polynom_t = std::map<int, int>;
+
 private:
     Lexer lexer;
-    std::map<int, int> polynom1;
-    std::map<int, int> polynom2;
-    std::map<int, int>* current_polynom;
+    polynom_t polynom1;
+    polynom_t polynom2;
+    polynom_t* current_polynom;
     size_t current_line;
     bool line_added;
 
@@ -200,8 +194,8 @@ public:
     ~Parser() = default;
 
     void parse();
-    inline std::map<int, int>& get_polynom1();
-    inline std::map<int, int>& get_polynom2();
+    polynom_t& get_polynom1() { return polynom1; }
+    polynom_t& get_polynom2() { return polynom2; }
 };
 
 Parser::Parser()
@@ -264,18 +258,17 @@ void Parser::parse()
     }
 }
 
-inline std::map<int, int>& Parser::get_polynom1() { return polynom1; }
-
-inline std::map<int, int>& Parser::get_polynom2() { return polynom2; }
-
 // -----------------------------------------------------------------------
 
 class PolynomProcessor
 {
+public:
+    using polynom_t = std::map<int, int>;
+
 private:
     Parser parser;
-    std::map<int, int>& polynom1;
-    std::map<int, int>& polynom2;
+    polynom_t& polynom1;
+    polynom_t& polynom2;
 
     PolynomProcessor(const PolynomProcessor&) = delete;
     PolynomProcessor(PolynomProcessor&&) noexcept = delete;
@@ -289,29 +282,26 @@ public:
     ~PolynomProcessor() = default;
 
     template <class Binary_Operator>
-    std::map<int, int> operator()(Binary_Operator&& op);
+    polynom_t operator()(Binary_Operator&& op);
 };
 
 PolynomProcessor::PolynomProcessor()
-    : polynom1(parser.get_polynom1()), polynom2(parser.get_polynom2()) {};
+    : polynom1(parser.get_polynom1()), polynom2(parser.get_polynom2()){};
 
 inline size_t PolynomProcessor::find_max_key()
 {
-    return std::max((*(polynom1.crbegin())).first,
-                    (*(polynom2.crbegin())).first);
+    return std::max((polynom1.crbegin())->first, (polynom2.crbegin())->first);
 }
 
 template <class Binary_Operator>
-std::map<int, int> PolynomProcessor::operator()(Binary_Operator&& op)
+PolynomProcessor::polynom_t PolynomProcessor::operator()(Binary_Operator&& op)
 {
-    std::map<int, int> result;
+    polynom_t result;
     parser.parse();
-    size_t iterations = find_max_key();
 
-    for (size_t i{0}; i <= iterations; ++i)
-    {
-        result[i] = op(polynom1[i], polynom2[i]);
-    }
+    std::ranges::for_each(std::views::iota(0ul, find_max_key() + 1),
+                          [&, this](auto i)
+                          { result[i] = op(polynom1[i], polynom2[i]); });
     return result;
 }
 }; // namespace LexerParser
@@ -322,7 +312,6 @@ int main()
     {
         LexerParser::Lexer lexer;
         lexer.parse();
-        size_t token_number{1};
 
         std::cout << "[DEBUG] Lexer has read theese tokens:\n";
         for (const LexerParser::Token& token : lexer.get_tokens())
@@ -330,30 +319,28 @@ int main()
             switch (token.type)
             {
             case LexerParser::TokenType::Newline:
-                std::cout << "[DEBUG] " << token_number
-                          << ". Token type: Newline; "
-                          << "token value: \\n\n";
+                std::cout << std::format(
+                    "[DEBUG] Token type: Newline; token value: \\n\n");
                 break;
             case LexerParser::TokenType::Number:
-                std::cout << "[DEBUG] " << token_number
-                          << ". Token type: Number; "
-                          << "token value: " << token.value << '\n';
+                std::cout << std::format(
+                    "[DEBUG] Token type: Number; token value: {}\n",
+                    token.value);
                 break;
             case LexerParser::TokenType::Eof:
-                std::cout << "[DEBUG] " << token_number << ". Token type: Eof; "
-                          << "token value: eof()\n";
+                std::cout << std::format(
+                    "[DEBUG] Token type: Eof; token value: eof()\n");
                 break;
             default:
-                std::cout << "[DEBUG] " << token_number
-                          << ". Token type: Undefined; "
-                          << "token value: " << token.value << '\n';
+                std::cout << std::format(
+                    "[DEBUG] Token type: Undefined; token value: {}\n",
+                    token.value);
             }
-            ++token_number;
         }
     }
     catch (const std::exception& ex)
     {
-        std::cerr << ex.what() << '\n';
+        std::cerr << std::format("{}\n", ex.what());
         exit(EXIT_FAILURE);
     }
 
@@ -363,18 +350,26 @@ int main()
         parser.parse();
 
         std::cout << "[DEBUG] Polynom1: \n";
-        for (const auto& [power, base] : parser.get_polynom1())
-            std::cout << "[DEBUG] Power: " << power << ", base: " << base
-                      << '\n';
+        std::ranges::for_each(parser.get_polynom1(),
+                              [](const auto& element)
+                              {
+                                  std::cout << std::format(
+                                      "[DEBUG] Power: {}, base: {}\n",
+                                      element.first, element.second);
+                              });
 
         std::cout << "[DEBUG] Polynom2: \n";
-        for (const auto& [power, base] : parser.get_polynom2())
-            std::cout << "[DEBUG] Power: " << power << ", base: " << base
-                      << '\n';
+        std::ranges::for_each(parser.get_polynom2(),
+                              [](const auto& element)
+                              {
+                                  std::cout << std::format(
+                                      "[DEBUG] Power: {}, base: {}\n",
+                                      element.first, element.second);
+                              });
     }
     catch (const std::exception& ex)
     {
-        std::cerr << ex.what() << '\n';
+        std::cerr << std::format("{}\n", ex.what());
         exit(EXIT_FAILURE);
     }
 
@@ -384,13 +379,17 @@ int main()
         auto result = proc(std::plus());
 
         std::cout << "[DEBUG] Result: \n";
-        for (const auto& [power, base] : result)
-            std::cout << "[DEBUG] Power: " << power << ", base: " << base
-                      << '\n';
+        std::ranges::for_each(result,
+                              [](const auto& element)
+                              {
+                                  std::cout << std::format(
+                                      "[DEBUG] Power: {}, base: {}\n",
+                                      element.first, element.second);
+                              });
     }
     catch (const std::exception& ex)
     {
-        std::cerr << ex.what() << '\n';
+        std::cerr << std::format("{}\n", ex.what());
         exit(EXIT_FAILURE);
     }
 
