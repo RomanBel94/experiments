@@ -32,26 +32,17 @@ struct Token
     }
     ~Token() = default;
 
-    inline bool operator==(TokenType rhs) const;
-    inline bool operator!=(TokenType rhs) const;
-    inline operator TokenType() const;
-    inline operator int() const;
+    bool operator==(TokenType rhs) const { return type == rhs; }
+    bool operator!=(TokenType rhs) const { return type != rhs; }
+    operator TokenType() const { return type; };
+    operator int() const { return value; };
 
 private:
-    Token() = delete;
     Token(const Token&) = delete;
     Token(Token&&) noexcept = delete;
-    const Token& operator=(const Token&) = delete;
+    Token& operator=(const Token&) = delete;
     Token&& operator=(Token&&) noexcept = delete;
 };
-
-inline bool Token::operator==(TokenType rhs) const { return this->type == rhs; }
-
-inline bool Token::operator!=(TokenType rhs) const { return this->type != rhs; }
-
-inline Token::operator TokenType() const { return type; }
-
-inline Token::operator int() const { return value; }
 
 // ------------------------------------------------------------------------
 
@@ -181,16 +172,16 @@ private:
     Lexer lexer;
     polynom_t polynom1;
     polynom_t polynom2;
-    polynom_t* current_polynom;
-    size_t current_line;
-    bool line_added;
+    polynom_t* current_polynom = &polynom1;
+    size_t current_line = 1;
+    bool line_added = false;
 
-    inline void reset();
-    inline void switch_polynoms() noexcept;
-    inline void add_values(const Token& power, const Token& base);
+    void reset();
+    void switch_polynoms() noexcept;
+    void add_values(const Token& power, const Token& base);
 
 public:
-    Parser();
+    Parser() = default;
     ~Parser() = default;
 
     void parse();
@@ -198,24 +189,19 @@ public:
     polynom_t& get_polynom2() { return polynom2; }
 };
 
-Parser::Parser()
-    : current_polynom(&polynom1), current_line(1), line_added(false)
-{
-}
-
-inline void Parser::reset()
+void Parser::reset()
 {
     polynom1.clear();
     polynom2.clear();
 }
 
-inline void Parser::switch_polynoms() noexcept
+void Parser::switch_polynoms() noexcept
 {
     current_polynom = &polynom2;
     current_line += 2;
 }
 
-inline void Parser::add_values(const Token& power, const Token& base)
+void Parser::add_values(const Token& power, const Token& base)
 {
     current_polynom->emplace(power, base);
     line_added = true;
@@ -239,9 +225,8 @@ void Parser::parse()
                 add_values(*current_token, *next_token);
             else
                 throw std::runtime_error(
-                    "[FATAL] Unexpected token: \"" +
-                    std::to_string((*next_token).value) +
-                    "\" at line: " + std::to_string(current_line));
+                    std::format("[FATAL] Unexpected token: \"{}\" at line: {}",
+                                next_token->value, current_line));
         }
         else if (*current_token == TokenType::Newline &&
                  *next_token == TokenType::Newline)
@@ -251,7 +236,6 @@ void Parser::parse()
         }
         else if (*current_token == TokenType::Newline)
         {
-
             ++current_line;
             line_added = false;
         }
@@ -275,7 +259,7 @@ private:
     PolynomProcessor& operator=(const PolynomProcessor&) = delete;
     PolynomProcessor&& operator=(PolynomProcessor&&) noexcept = delete;
 
-    inline size_t find_max_key();
+    size_t find_max_key();
 
 public:
     PolynomProcessor();
@@ -288,7 +272,7 @@ public:
 PolynomProcessor::PolynomProcessor()
     : polynom1(parser.get_polynom1()), polynom2(parser.get_polynom2()){};
 
-inline size_t PolynomProcessor::find_max_key()
+size_t PolynomProcessor::find_max_key()
 {
     return std::max((polynom1.crbegin())->first, (polynom2.crbegin())->first);
 }
