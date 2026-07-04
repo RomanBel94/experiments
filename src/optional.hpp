@@ -22,19 +22,24 @@ template <typename _T>
 class optional final
 {
 private:
-    alignas(_T) char buf[sizeof(_T)];
-    _T* val;
+    alignas(_T) char m_memory_buffer[sizeof(_T)];
+    _T* m_value_ptr;
 
 public:
-    optional(nullopt_t = nullopt) : val{nullptr} {DEBUG_MSG};
+    optional(nullopt_t = nullopt) : m_value_ptr{nullptr} {DEBUG_MSG};
+
     optional(_T&& val);
+
     template <typename... _Args>
     optional(_Args&&... args);
+
     optional(const optional<_T>& other)
-        : val{new(buf) _T(std::forward<_T>(other.value()))} {DEBUG_MSG};
+        : m_value_ptr{new(m_memory_buffer) _T(other.value())} {DEBUG_MSG};
+
     optional(optional<_T>&& other) noexcept { DEBUG_MSG swap(other); };
 
     optional<_T>& operator=(const optional<_T>& other);
+
     optional<_T>&& operator=(optional<_T>&& other) noexcept;
 
     _T& operator=(const _T& value);
@@ -42,14 +47,14 @@ public:
 
     ~optional() noexcept { DEBUG_MSG reset(); };
 
-    bool has_value() const noexcept { DEBUG_MSG return val; }
+    bool has_value() const noexcept { DEBUG_MSG return m_value_ptr != nullptr; }
     operator bool() const noexcept { DEBUG_MSG return has_value(); }
 
-    _T& value() & noexcept { DEBUG_MSG return *val; }
-    const _T& value() const& noexcept { DEBUG_MSG return *val; }
+    _T& value() & noexcept { DEBUG_MSG return *m_value_ptr; }
+    const _T& value() const& noexcept { DEBUG_MSG return *m_value_ptr; }
 
-    _T&& value() && noexcept { DEBUG_MSG return *val; }
-    const _T&& value() const&& noexcept { DEBUG_MSG return *val; }
+    _T&& value() && noexcept { DEBUG_MSG return *m_value_ptr; }
+    const _T&& value() const&& noexcept { DEBUG_MSG return *m_value_ptr; }
 
     _T& operator*() & noexcept { DEBUG_MSG return value(); }
     const _T& operator*() const& noexcept { DEBUG_MSG return value(); }
@@ -57,18 +62,24 @@ public:
     _T&& operator*() && noexcept { DEBUG_MSG return value(); }
     const _T&& operator*() const&& noexcept { DEBUG_MSG return value(); }
 
-    _T* operator->() noexcept { DEBUG_MSG return val; }
-    const _T* operator->() const noexcept { DEBUG_MSG return val; }
+    _T* operator->() & noexcept { DEBUG_MSG return m_value_ptr; }
+    const _T* operator->() const& noexcept { DEBUG_MSG return m_value_ptr; }
+
+    _T* operator->() && noexcept { DEBUG_MSG return m_value_ptr; }
+    const _T* operator->() const&& noexcept { DEBUG_MSG return m_value_ptr; }
 
     void reset() noexcept;
+
     void swap(optional& other) & noexcept
     {
-        DEBUG_MSG std::swap(this->val, other.val);
+        DEBUG_MSG
+        std::swap(this->val, other.val);
         std::swap(this->buf, other.buf);
     }
     void swap(optional&& other) && noexcept
     {
-        DEBUG_MSG std::swap(this->val, other.val);
+        DEBUG_MSG
+        std::swap(this->val, other.val);
         std::swap(this->buf, other.buf);
     }
 
@@ -80,7 +91,7 @@ template <typename _T>
 optional<_T>::optional(_T&& val)
 {
     DEBUG_MSG
-    this->val = new (buf) _T(std::forward<_T>(val));
+    this->m_value_ptr = new (m_memory_buffer) _T(std::forward<_T>(val));
 }
 
 template <typename _T>
@@ -88,7 +99,7 @@ inline optional<_T>& optional<_T>::operator=(const optional<_T>& other)
 {
     DEBUG_MSG
     reset();
-    val = new (buf) _T(other.value());
+    m_value_ptr = new (m_memory_buffer) _T(other.value());
     return *this;
 }
 
@@ -104,34 +115,34 @@ template <typename _T>
 inline _T& optional<_T>::operator=(const _T& value)
 {
     DEBUG_MSG
-    if (!val)
-        val = new (buf) _T(value);
+    if (m_memory_buffer == nullptr)
+        m_value_ptr = new (m_memory_buffer) _T(value);
     else
-        *val = value;
+        *m_value_ptr = value;
 
-    return *val;
+    return *m_value_ptr;
 }
 
 template <typename _T>
 inline _T&& optional<_T>::operator=(_T&& value) noexcept
 {
     DEBUG_MSG
-    if (!val)
-        val = new (buf) _T(std::forward<_T>(value));
+    if (!m_value_ptr)
+        m_value_ptr = new (m_memory_buffer) _T(std::forward<_T>(value));
     else
-        std::swap(*val, value);
+        std::swap(*m_value_ptr, value);
 
-    return std::move(*val);
+    return std::move(*m_value_ptr);
 }
 
 template <typename _T>
 inline void optional<_T>::reset() noexcept
 {
     DEBUG_MSG
-    if (val)
+    if (m_value_ptr != nullptr)
     {
-        val->~_T();
-        val = nullptr;
+        m_value_ptr->~_T();
+        m_value_ptr = nullptr;
     }
 }
 
@@ -140,7 +151,7 @@ template <typename... _Args>
 inline optional<_T>::optional(_Args&&... args)
 {
     DEBUG_MSG
-    val = new (buf) _T(std::forward<_Args>(args)...);
+    m_value_ptr = new (m_memory_buffer) _T(std::forward<_Args>(args)...);
 }
 
 template <typename _T>
@@ -149,7 +160,7 @@ void optional<_T>::emplace(_Args&&... args)
 {
     DEBUG_MSG
     reset();
-    val = new (buf) _T(std::forward<_Args>(args)...);
+    m_value_ptr = new (m_memory_buffer) _T(std::forward<_Args>(args)...);
 }
 
 template <typename _T>
