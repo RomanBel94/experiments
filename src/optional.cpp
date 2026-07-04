@@ -23,6 +23,13 @@ int main()
     opt_int.reset();
     assert(!opt_int.has_value());
 
-    std::clog << "All asserts passed\n";
+    my::optional opt_float{42.f};
+    assert(opt_float);
+    opt_float = 5.3f;
+    assert(opt_float == 5.3f);
+    opt_float.reset();
+    assert(!opt_int.has_value());
+
+    std::clog << "\e[1;32mAll asserts passed\n\e[0m";
     return EXIT_SUCCESS;
 }
