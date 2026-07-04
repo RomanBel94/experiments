@@ -1,9 +1,9 @@
 #include <chrono>
 #include <cstddef>
 #include <iostream>
-#include <ratio>
 
-template <std::size_t pos_phase, std::size_t neg_phase>
+template <size_t _pos_phase, size_t _neg_phase,
+          class _clock = std::chrono::high_resolution_clock>
 class blink_timer final
 {
 private:
@@ -12,22 +12,17 @@ private:
     blink_timer& operator=(const blink_timer&) = delete;
     blink_timer&& operator=(blink_timer&&) noexcept = delete;
 
-    const std::chrono::duration<std::size_t, std::milli> _positive_phase{
-        pos_phase};
-    const std::chrono::duration<std::size_t, std::milli> _negative_phase{
-        neg_phase};
+    const std::chrono::milliseconds _positive_phase{_pos_phase};
+    const std::chrono::milliseconds _negative_phase{_neg_phase};
 
-    const std::chrono::time_point<std::chrono::high_resolution_clock>
-        start_time{std::chrono::high_resolution_clock::now()};
+    const std::chrono::time_point<_clock> start_time;
 
 public:
-    blink_timer() = default;
-    ~blink_timer() noexcept = default;
+    blink_timer() : start_time(_clock::now()){};
 
     bool current_phase() const noexcept
     {
-        auto current_time = std::chrono::high_resolution_clock::now();
-        auto time_passed = current_time - start_time;
+        auto time_passed = _clock::now() - start_time;
         auto full_cycle = _positive_phase + _negative_phase;
         std::size_t num_cycles = time_passed / full_cycle;
 
