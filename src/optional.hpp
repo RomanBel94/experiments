@@ -10,8 +10,7 @@ namespace my
 #define DEBUG_MSG
 #else
 #define DEBUG_MSG                                                              \
-    std::clog << std::source_location::current().line() << ','                 \
-              << std::source_location::current().function_name() << "\n";
+    std::clog << std::source_location::current().function_name() << "\n";
 #endif
 
 constexpr struct nullopt_t

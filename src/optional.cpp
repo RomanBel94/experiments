@@ -1,6 +1,7 @@
 #include "optional.hpp"
 #include <cassert>
 #include <string>
+#include <vector>
 
 int main()
 {
@@ -29,6 +30,10 @@ int main()
     assert(opt_float == 5.3f);
     opt_float.reset();
     assert(!opt_int.has_value());
+
+    my::optional<std::vector<int>> opt_vec{{1, 2, 3, 4, 5}};
+    opt_vec->push_back(6);
+    assert(opt_vec.value()[5] == 6);
 
     std::clog << "\e[1;32mAll asserts passed\n\e[0m";
     return EXIT_SUCCESS;
