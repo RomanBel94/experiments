@@ -1,4 +1,5 @@
 #include <iostream>
+#include <source_location>
 #include <utility>
 
 namespace my
@@ -8,12 +9,11 @@ namespace my
 #ifndef TEST
 #define DEBUG_MSG
 #else
-#ifdef _WIN32
-#define DEBUG_MSG std::clog << __FUNCTION__ << "\n";
-#else
-#define DEBUG_MSG std::clog << __PRETTY_FUNCTION__ << "\n";
+#define DEBUG_MSG                                                              \
+    std::clog << std::source_location::current().line() << ','                 \
+              << std::source_location::current().function_name() << "\n";
 #endif
-#endif
+
 constexpr struct nullopt_t
 {
 } nullopt;
@@ -22,17 +22,16 @@ template <typename _T>
 class optional final
 {
 private:
+    alignas(_T) char buf[sizeof(_T)];
     _T* val;
 
 public:
-    optional(nullopt_t = nullopt) : val{nullptr} { DEBUG_MSG };
+    optional(nullopt_t = nullopt) : val{nullptr} {DEBUG_MSG};
     optional(_T&& val);
     template <typename... _Args>
     optional(_Args&&... args);
     optional(const optional<_T>& other)
-        : val{new _T(std::forward<_T>(other.value()))} {
-              DEBUG_MSG
-          };
+        : val{new(buf) _T(std::forward<_T>(other.value()))} {DEBUG_MSG};
     optional(optional<_T>&& other) noexcept { DEBUG_MSG swap(other); };
 
     optional<_T>& operator=(const optional<_T>& other);
@@ -65,10 +64,12 @@ public:
     void swap(optional& other) & noexcept
     {
         DEBUG_MSG std::swap(this->val, other.val);
+        std::swap(this->buf, other.buf);
     }
     void swap(optional&& other) && noexcept
     {
         DEBUG_MSG std::swap(this->val, other.val);
+        std::swap(this->buf, other.buf);
     }
 
     template <typename... _Args>
@@ -79,7 +80,7 @@ template <typename _T>
 optional<_T>::optional(_T&& val)
 {
     DEBUG_MSG
-    this->val = new _T(std::forward<_T>(val));
+    this->val = new (buf) _T(std::forward<_T>(val));
 }
 
 template <typename _T>
@@ -87,7 +88,7 @@ inline optional<_T>& optional<_T>::operator=(const optional<_T>& other)
 {
     DEBUG_MSG
     reset();
-    val = new _T(other.value());
+    val = new (buf) _T(other.value());
     return *this;
 }
 
@@ -103,7 +104,11 @@ template <typename _T>
 inline _T& optional<_T>::operator=(const _T& value)
 {
     DEBUG_MSG
-    *val = value;
+    if (!val)
+        val = new (buf) _T(value);
+    else
+        *val = value;
+
     return *val;
 }
 
@@ -111,7 +116,11 @@ template <typename _T>
 inline _T&& optional<_T>::operator=(_T&& value) noexcept
 {
     DEBUG_MSG
-    std::swap(*val, value);
+    if (!val)
+        val = new (buf) _T(std::forward<_T>(value));
+    else
+        std::swap(*val, value);
+
     return std::move(*val);
 }
 
@@ -119,8 +128,11 @@ template <typename _T>
 inline void optional<_T>::reset() noexcept
 {
     DEBUG_MSG
-    delete val;
-    val = nullptr;
+    if (val)
+    {
+        val->~_T();
+        val = nullptr;
+    }
 }
 
 template <typename _T>
@@ -128,7 +140,7 @@ template <typename... _Args>
 inline optional<_T>::optional(_Args&&... args)
 {
     DEBUG_MSG
-    val = new _T(std::forward<_Args>(args)...);
+    val = new (buf) _T(std::forward<_Args>(args)...);
 }
 
 template <typename _T>
@@ -137,7 +149,7 @@ void optional<_T>::emplace(_Args&&... args)
 {
     DEBUG_MSG
     reset();
-    val = new _T(std::forward<_Args>(args)...);
+    val = new (buf) _T(std::forward<_Args>(args)...);
 }
 
 template <typename _T>
