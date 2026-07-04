@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 ptrdiff_t my_strlen(const char* str)
 {
@@ -16,5 +17,5 @@ int main()
     printf("%s\n", str);
     printf("%td\n", my_strlen(str));
 
-    return 0;
+    return EXIT_SUCCESS;
 }
