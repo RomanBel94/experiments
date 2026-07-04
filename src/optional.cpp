@@ -16,6 +16,13 @@ int main()
     assert(!op_string2.has_value());
     assert(op_string3.value() == "Hello");
 
+    my::optional<int> opt_int;
+    assert(!opt_int);
+    opt_int = 5;
+    assert(opt_int == 5);
+    opt_int.reset();
+    assert(!opt_int.has_value());
+
     std::clog << "All asserts passed\n";
     return EXIT_SUCCESS;
 }

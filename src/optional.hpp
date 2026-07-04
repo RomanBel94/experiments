@@ -190,6 +190,19 @@ bool operator!=(const my::nullopt_t, const my::optional<_T>& obj) noexcept
     DEBUG_MSG
     return obj.has_value();
 }
+
+template <typename _T>
+bool operator==(const my::optional<_T>& opt, const _T& val) noexcept
+{
+    return opt.value() == val;
+}
+
+template <typename _T>
+bool operator==(const my::optional<_T>& opt, const _T&& val) noexcept
+{
+    return opt.value() == val;
+}
+
 } // namespace my
 
 template <typename _T>
