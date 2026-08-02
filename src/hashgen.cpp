@@ -11,32 +11,32 @@ public:
     SimpleHashGenerator() = default;
     ~SimpleHashGenerator() noexcept = default;
 
-    std::wstring get_hash(std::size_t size);
+    std::string get_hash(std::size_t size);
 
 private:
-    static const std::wstring digits;
+    static const std::string digits;
 
     static std::random_device rd;
     static const std::mt19937 gen;
     static std::uniform_int_distribution<std::size_t> distribution;
 
-    static void _fill_hash(std::wstring& hash,
+    static void _fill_hash(std::string& hash,
                            const std::size_t amount) noexcept;
 };
 
-std::wstring SimpleHashGenerator::get_hash(const std::size_t size)
+std::string SimpleHashGenerator::get_hash(const std::size_t size)
 {
     if (size > 0)
     {
-        std::wstring result;
+        std::string result;
         _fill_hash(result, size);
         return result;
     }
 
-    return L"";
+    return "";
 }
 
-const std::wstring SimpleHashGenerator::digits{L"123456789ABCDEF"};
+const std::string SimpleHashGenerator::digits{"123456789ABCDEF"};
 
 std::random_device SimpleHashGenerator::rd{};
 const std::mt19937 SimpleHashGenerator::gen(rd());
@@ -44,7 +44,7 @@ std::uniform_int_distribution<std::size_t>
     SimpleHashGenerator::distribution(0, digits.size() - 1);
 
 // Clears parameter and fills it with passed amount
-void SimpleHashGenerator::_fill_hash(std::wstring& hash,
+void SimpleHashGenerator::_fill_hash(std::string& hash,
                                      const std::size_t amount) noexcept
 {
     hash.clear();
@@ -72,15 +72,15 @@ int main(int argc, char** argv)
     }
 
     SimpleHashGenerator gen;
-    std::wstring hash;
+    std::string hash;
 
     hash = gen.get_hash(std::stoi(argv[1]));
 
     std::size_t filename_size = hash.size() > 10 ? 10 : hash.size();
     std::filesystem::path filemane =
-        std::format(L"{}.txt", hash.substr(0, filename_size));
+        std::format("{}.txt", hash.substr(0, filename_size));
 
-    std::wofstream output_file(filemane, std::ios::out);
+    std::ofstream output_file(filemane, std::ios::out);
     if (!output_file)
     {
         std::wcerr << L"Не удалось записать файл\n";
